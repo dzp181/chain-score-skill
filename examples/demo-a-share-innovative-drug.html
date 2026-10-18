@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>产业链卡点研究 · Serenity</title>
+<style>
+/* ============ tokens ============ */
+:root{
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+  --r-xl: 24px; --r-l: 22px; --r-m: 16px; --r-s: 12px;
+
+  --glass: rgba(255,255,255,.58);
+  --glass-strong: rgba(255,255,255,.84);
+  --glass-soft: rgba(255,255,255,.44);
+  --hair: rgba(255,255,255,.62);
+  --inner: inset 0 1px 0 rgba(255,255,255,.92);
+  --shadow: 0 24px 60px -26px rgba(30,28,60,.30), 0 2px 8px rgba(30,28,60,.05);
+  --shadow-sm: 0 10px 26px -16px rgba(30,28,60,.28);
+
+  --ink-1: #17171d;
+  --ink-2: #3c3c46;
+  --ink-3: #6c6c7a;
+  --ink-4: #9a9aa8;
+
+  --accent: #6357f5;
+  --accent-2: #a855f7;
+  --accent-soft: rgba(99,87,245,.10);
+  --s: #6357f5;
+  --a: #2f7ff0;
+  --b: #b48100;
+  --c: #7b7b88;
+  --rise: #c9442a;
+  --fall: #148a63;
+
+  --spring: cubic-bezier(.22,1.2,.36,1);
+  --ease: cubic-bezier(.4,0,.2,1);
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --glass: rgba(32,32,42,.58);
+    --glass-strong: rgba(40,40,52,.82);
+    --glass-soft: rgba(28,28,38,.42);
+    --hair: rgba(255,255,255,.10);
+    --inner: inset 0 1px 0 rgba(255,255,255,.10);
+    --shadow: 0 26px 64px -28px rgba(0,0,0,.72), 0 2px 8px rgba(0,0,0,.30);
+    --shadow-sm: 0 10px 26px -16px rgba(0,0,0,.6);
+    --ink-1: #f2f2f6;
+    --ink-2: #cfcfda;
+    --ink-3: #9b9bab;
+    --ink-4: #74748a;
+    --accent: #8b82ff;
+    --accent-2: #c084fc;
+    --accent-soft: rgba(139,130,255,.16);
+    --s: #8b82ff; --a: #5aa2ff; --b: #e0a92e; --c: #9b9bab;
+    --rise: #ff7a55; --fall: #34c79a;
+  }
+}
+
+*{ box-sizing: border-box; }
+html,body{ margin:0; padding:0; }
+body{
+  font-family: var(--font);
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: var(--ink-1);
+  background: #eef1f7;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ============ ambient ============ */
+.ambient{ position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(1100px 640px at 8% -12%, #d5deff 0%, transparent 60%),
+    radial-gradient(920px 620px at 96% 0%, #f2d8ff 0%, transparent 62%),
+    radial-gradient(900px 720px at 42% 114%, #cfe9ff 0%, transparent 60%),
+    radial-gradient(760px 520px at 78% 62%, #e6e2ff 0%, transparent 66%),
+    linear-gradient(165deg, #f7f8fc 0%, #eaeef7 55%, #e5eaf5 100%);
+}
+@media (prefers-color-scheme: dark){
+  .ambient{ background:
+    radial-gradient(1100px 640px at 8% -14%, #232a52 0%, transparent 62%),
+    radial-gradient(920px 620px at 96% 0%, #35204e 0%, transparent 64%),
+    radial-gradient(900px 720px at 44% 114%, #10283a 0%, transparent 62%),
+    linear-gradient(165deg, #12121a 0%, #0e0e16 60%, #0b0b12 100%); }
+}
+.orb{ position: absolute; border-radius: 50%; filter: blur(60px); opacity: .55; }
+.o1{ width: 420px; height: 420px; left: -90px; top: 12%; background: radial-gradient(circle,#c7d2ff,transparent 68%); animation: drift1 26s var(--ease) infinite alternate; }
+.o2{ width: 380px; height: 380px; right: -60px; top: 4%; background: radial-gradient(circle,#f0d3ff,transparent 68%); animation: drift2 32s var(--ease) infinite alternate; }
+.o3{ width: 460px; height: 460px; left: 42%; bottom: -180px; background: radial-gradient(circle,#cdeaff,transparent 68%); animation: drift3 38s var(--ease) infinite alternate; }
+@media (prefers-color-scheme: dark){
+  .orb{ opacity:.26; }
+  .o1{ background: radial-gradient(circle,#3b4a9e,transparent 68%); }
+  .o2{ background: radial-gradient(circle,#6d3f96,transparent 68%); }
+  .o3{ background: radial-gradient(circle,#1c5a7a,transparent 68%); }
+}
+@keyframes drift1{ to{ transform: translate3d(60px,40px,0) scale(1.08); } }
+@keyframes drift2{ to{ transform: translate3d(-50px,60px,0) scale(1.12); } }
+@keyframes drift3{ to{ transform: translate3d(40px,-50px,0) scale(1.06); } }
+
+/* ============ shell ============ */
+.app{
+  position: relative; z-index: 1;
+  max-width: 1440px; margin: 0 auto;
+  padding: 20px 22px 34px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+
+.glass{
+  position: relative;
+  background: var(--glass);
+  backdrop-filter: blur(26px) saturate(200%);
+  -webkit-backdrop-filter: blur(26px) saturate(200%);
+  border: 1px solid var(--hair);
+  border-radius: var(--r-l);
+  box-shadow: var(--inner), var(--shadow);
+}
+.glass::after{
+  content:""; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,.28), rgba(255,255,255,0) 34%);
+  opacity:.7;
+}
+@media (prefers-color-scheme: dark){
+  .glass::after{ background: linear-gradient(180deg, rgba(255,255,255,.06), transparent 34%); }
+}
+
+/* ============ head actions ============ */
+.tq-right{ margin-left:auto; flex:0 0 auto; display:flex; align-items:center; gap:8px; }
+.badge-demo{
+  font-size:11px; font-weight:600; letter-spacing:.06em;
+  color:#8a5a00; background: rgba(255,196,84,.26);
+  border:1px solid rgba(255,196,84,.55);
+  padding: 3px 9px; border-radius:999px;
+}
+@media (prefers-color-scheme: dark){ .badge-demo{ color:#ffd591; background: rgba(255,196,84,.14); } }
+.topdate{ font-size:11.5px; color: var(--ink-4); letter-spacing:.04em; font-variant-numeric: tabular-nums; }
+.btn-ghost{
+  border:1px solid var(--hair); background: var(--glass-soft); color: var(--ink-2);
+  font: inherit; font-size:12px; padding: 6px 13px; border-radius:999px; cursor:pointer;
+  transition: transform .28s var(--spring), background .2s var(--ease), color .2s;
+}
+.btn-ghost:hover{ background: var(--glass-strong); color: var(--ink-1); transform: translateY(-1px); }
+.btn-ghost:active{ transform: scale(.97); }
+
+/* ============ cards ============ */
+.card{ padding: 16px 18px; }
+.card-hd{
+  display:flex; align-items:baseline; justify-content:space-between; gap:10px;
+  margin-bottom: 10px;
+}
+.card-hd h2{ margin:0; font-size:12.5px; font-weight:600; letter-spacing:.06em; color: var(--ink-2); }
+.card-hd h2 i{ font-style:normal; color: var(--ink-4); font-weight:500; font-size:11px; margin-left:6px; letter-spacing:.02em; }
+.hd-note{ font-size:11px; color: var(--ink-4); font-variant-numeric: tabular-nums; letter-spacing:.03em; }
+
+/* ============ theme head ============ */
+.themed{ display:flex; flex-direction:column; gap:12px; }
+.themed .tq{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.themed h1{ margin:0; font-size:22px; line-height:1.3; font-weight:650; letter-spacing:-.02em; color: var(--ink-1); }
+.tagline{
+  font-size:11px; padding:2px 9px; border-radius:999px; letter-spacing:.04em;
+  background: var(--accent-soft); color: var(--accent);
+  border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.verdict{
+  margin:0; font-size:14.5px; line-height:1.7; color: var(--ink-2);
+  padding-left: 12px; border-left: 2.5px solid color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.stats{ display:grid; grid-template-columns: repeat(3, 108px); gap:10px; }
+.split{ display:grid; grid-template-columns: minmax(0,1fr) auto; gap: 24px; align-items:center; }
+@media (max-width: 980px){ .split{ grid-template-columns: 1fr; gap:12px; } }
+@media (max-width: 760px){ .stats{ grid-template-columns: 1fr 1fr 1fr; } }
+.stat{ background: var(--glass-soft); border:1px solid var(--hair); border-radius: var(--r-s); padding: 8px 12px; }
+.stat .sl{ font-size:10.5px; color: var(--ink-4); letter-spacing:.07em; }
+.stat .sv{ font-size:17px; font-weight:650; letter-spacing:-.02em; font-variant-numeric: tabular-nums; color: var(--ink-1); }
+.stat .sv small{ font-size:11px; font-weight:500; color: var(--ink-4); margin-left:3px; letter-spacing:0; }
+
+.histchips{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; padding-top:2px; }
+.histchips .lab{ font-size:10.5px; color: var(--ink-4); letter-spacing:.06em; margin-right:2px; }
+.hchip{
+  font: inherit; font-size:11.5px; cursor:pointer; color: var(--ink-3);
+  background: var(--glass-soft); border:1px solid var(--hair);
+  padding: 3px 10px; border-radius:999px;
+  transition: background .25s var(--ease), color .2s, transform .3s var(--spring);
+}
+.hchip:hover{ color: var(--ink-1); transform: translateY(-1px); }
+.hchip.on{ background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 24%, transparent); }
+
+/* ============ layer chain ============ */
+.chain{ display:grid; grid-template-columns: repeat(4, 1fr); gap:10px; }
+.chain.n3{ grid-template-columns: repeat(3, 1fr); }
+.chain.n5{ grid-template-columns: repeat(5, 1fr); }
+.lay{
+  position:relative; border:1px solid var(--hair); border-radius: var(--r-m);
+  background: var(--glass-soft); padding: 11px 12px 12px;
+  transition: transform .3s var(--spring), background .25s;
+}
+.lay:hover{ transform: translateY(-2px); background: var(--glass); }
+.lay.top{ box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 42%, transparent); }
+.lay .l1{ display:flex; align-items:center; gap:7px; }
+.lay .ln{
+  font-size:10px; font-weight:700; color:#fff; background: var(--ink-3);
+  width:17px; height:17px; border-radius:6px; display:grid; place-items:center;
+  font-variant-numeric: tabular-nums;
+}
+.lay.top .ln{ background: linear-gradient(135deg, var(--accent), var(--accent-2)); }
+.lay .seg{ font-size:10px; color: var(--ink-4); letter-spacing:.06em; }
+.lay .nm{ font-size:13px; font-weight:650; color: var(--ink-1); margin-top:3px; letter-spacing:.01em; }
+.lay .note{ font-size:11.5px; color: var(--ink-3); line-height:1.5; margin-top:4px; min-height:2.9em; }
+.lay .l3{ display:flex; align-items:center; gap:7px; margin-top:7px; }
+.dots{ display:flex; gap:2.5px; }
+.dots i{ width:4px; height:10px; border-radius:2px; background: color-mix(in srgb, var(--ink-1) 10%, transparent); }
+.dots i.f{ background: linear-gradient(180deg, var(--accent-2), var(--accent)); }
+.lay .sv{ font-size:10.5px; color: var(--ink-4); font-variant-numeric: tabular-nums; }
+.lay .verdict{
+  margin-left:auto; font-size:10.5px; padding:1px 7px; border-radius:999px;
+  border:1px solid transparent; font-weight:600; letter-spacing:.02em; white-space:nowrap;
+}
+.v1{ color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 22%, transparent) !important; }
+.v2{ color: var(--a); background: rgba(47,127,240,.10); border-color: rgba(47,127,240,.22) !important; }
+.v3{ color: var(--ink-4); background: var(--glass-soft); border-color: var(--hair) !important; }
+
+/* ============ 财务口径 ============ */
+.finwrap{ overflow-x:auto; margin: 0 -2px; padding: 0 2px 2px; }
+.finwrap::-webkit-scrollbar{ height:0; }
+.fintable{ width:100%; border-collapse:separate; border-spacing:0; font-size:12px; min-width: 900px; }
+.fintable th{
+  font-weight:600; font-size:10.5px; letter-spacing:.05em; color: var(--ink-4);
+  text-align:right; padding: 0 11px 8px; white-space:nowrap;
+  border-bottom:1px solid var(--hair);
+}
+.fintable th:first-child{ text-align:left; padding-left:2px; }
+.fintable th:nth-child(2){ text-align:left; }
+.fintable td{
+  padding: 9px 11px; text-align:right; font-variant-numeric: tabular-nums;
+  border-bottom:1px dashed var(--hair); color: var(--ink-2); white-space:nowrap;
+}
+.fintable td:first-child{ text-align:left; padding-left:2px; }
+.fintable td:nth-child(2){ text-align:left; }
+.fintable tr:last-child td{ border-bottom:0; }
+.fintable tbody tr{ transition: background .2s var(--ease); }
+.fintable tbody tr:hover td{ background: var(--glass-soft); }
+.fintable .fn{ font-weight:650; color: var(--ink-1); font-size:12.5px; letter-spacing:.01em; }
+.fintable .fc{ display:block; font-size:10px; color: var(--ink-4); font-weight:400; letter-spacing:.02em; margin-top:-1px; }
+.fintable .fl{ font-size:10.5px; color: var(--ink-3); }
+.fintable .score{ font-weight:700; }
+.fintable .up{ color: var(--rise); }
+.fintable .down{ color: var(--fall); }
+.fintable .mut{ color: var(--ink-4); }
+.fin-foot{ margin-top:11px; padding-top:9px; border-top:1px solid var(--hair);
+  font-size:10.5px; color: var(--ink-4); line-height:1.65; letter-spacing:.02em; }
+.fin-swipe{ display:none; margin-top:8px; font-size:10.5px; color: var(--ink-4);
+  letter-spacing:.04em; text-align:center; }
+@media (max-width: 1100px){
+  .fin-swipe{ display:none; }
+  .finwrap{ -webkit-overflow-scrolling: touch; scrollbar-width: thin; }
+  .finwrap::-webkit-scrollbar{ height:6px; }
+  .finwrap::-webkit-scrollbar-thumb{ background: rgba(120,120,140,.34); border-radius:999px; }
+  .finwrap::-webkit-scrollbar-track{ background: transparent; }
+}
+#finCard.can-scroll .fin-swipe{ display:block; }
+
+/* ============ main two-col ============ */
+.main{ display:grid; grid-template-columns: 350px minmax(0,1fr); gap:16px; align-items:start; }
+.col-list{ position: sticky; top: 20px; }
+
+.sc{
+  flex:0 0 auto; font-size:11.5px; font-weight:700; font-variant-numeric: tabular-nums;
+  padding: 2px 8px; border-radius:999px; letter-spacing:.02em;
+}
+.sc.S{ color:#fff; background: linear-gradient(135deg, var(--s), var(--accent-2)); }
+.sc.A{ color:#fff; background: var(--a); }
+.sc.B{ color:#fff; background: var(--b); }
+.sc.C{ color:#fff; background: var(--c); }
+.sc.NA{ color: var(--ink-3); background: var(--glass-soft); border:1px solid var(--hair); }
+
+/* ============ rank list ============ */
+.rows{ display:flex; flex-direction:column; gap:6px; }
+.srow{
+  position:relative; text-align:left; cursor:pointer; color:inherit; font: inherit;
+  border:1px solid transparent; border-radius: var(--r-m);
+  background: transparent; padding: 10px 11px;
+  display:grid; grid-template-columns: 22px minmax(0,1fr) auto; gap: 2px 9px;
+  align-items:center;
+  transition: background .28s var(--ease), transform .32s var(--spring), box-shadow .28s var(--ease), border-color .28s;
+}
+.srow:hover{ background: var(--glass-soft); transform: translateX(2px); }
+.srow.on{
+  background: var(--glass-strong); border-color: var(--hair);
+  box-shadow: var(--inner), var(--shadow-sm);
+}
+.srow.on::before{
+  content:""; position:absolute; left:0; top:12px; bottom:12px; width:3px;
+  border-radius:3px; background: linear-gradient(180deg, var(--accent), var(--accent-2));
+}
+.srow .rk{
+  grid-row: 1 / span 2; align-self:start;
+  font-size:11px; font-weight:700; color: var(--ink-4);
+  font-variant-numeric: tabular-nums; padding-top:1px;
+}
+.srow .nm{ font-size:13.5px; font-weight:650; color: var(--ink-1); letter-spacing:.01em;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.srow .cd{ font-size:10.5px; color: var(--ink-4); font-variant-numeric: tabular-nums; letter-spacing:.02em; margin-top:-1px; }
+.srow .role{ grid-column: 2 / span 2; font-size:11.5px; color: var(--ink-3); line-height:1.45;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+.srow .line{ grid-column: 2 / span 2; height:3px; border-radius:2px; margin-top:5px;
+  background: color-mix(in srgb, var(--ink-1) 7%, transparent); overflow:hidden; }
+.srow .line i{ display:block; height:100%; border-radius:2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2)); transition: width .6s var(--spring); }
+.rows-foot{ margin-top:12px; padding-top:11px; border-top:1px solid var(--hair);
+  font-size:11px; color: var(--ink-4); letter-spacing:.02em; line-height:1.6; }
+
+/* ============ detail ============ */
+#detail{ display:flex; flex-direction:column; gap:14px; }
+
+.dhead{ display:flex; gap:18px; align-items:flex-start; flex-wrap:wrap; }
+.dhead .hl{ flex:1 1 320px; min-width:0; }
+.dhead .h1{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; }
+.dhead h2{ margin:0; font-size:24px; font-weight:650; letter-spacing:-.025em; color: var(--ink-1); }
+.dhead .code{ font-size:11.5px; color: var(--ink-4); font-variant-numeric: tabular-nums; letter-spacing:.03em; }
+.dhead .role{ font-size:12.5px; color: var(--ink-3); margin-top:3px; }
+.tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.tag{
+  font-size:11px; padding:2px 9px; border-radius:999px;
+  background: var(--glass-soft); border:1px solid var(--hair); color: var(--ink-2);
+}
+.tag.k{ background: var(--accent-soft); color: var(--accent); border-color: color-mix(in srgb, var(--accent) 22%, transparent); }
+
+.ring{ position:relative; flex:0 0 108px; width:108px; height:108px; }
+.ring svg{ display:block; width:108px; height:108px; }
+.rtrack{ fill:none; stroke: color-mix(in srgb, var(--ink-1) 8%, transparent); stroke-width:8; }
+.rfill{
+  fill:none; stroke: url(#rg); stroke-width:8; stroke-linecap:round;
+  filter: drop-shadow(0 3px 10px color-mix(in srgb, var(--accent) 40%, transparent));
+  transition: stroke-dashoffset .85s var(--spring);
+}
+.ring .num{
+  position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:26px; font-weight:700; letter-spacing:-.04em; line-height:1;
+  font-variant-numeric: tabular-nums; color: var(--ink-1);
+}
+.ring .num small{ font-size:9.5px; font-weight:600; letter-spacing:.04em; color: var(--ink-4); margin-top:5px; }
+
+.capwarn{
+  font-size:11px; color:#b4632f; letter-spacing:.01em;
+  background: rgba(224,118,79,.10); border-radius:8px; padding:5px 9px; margin-top:9px;
+}
+@media (prefers-color-scheme: dark){ .capwarn{ color:#f0a97f; background: rgba(224,118,79,.16); } }
+
+.dims5{ display:grid; grid-template-columns: repeat(5, 1fr); gap:8px; margin-top:13px; }
+.dim5{
+  position:relative; cursor:pointer; text-align:left; font:inherit; color:inherit;
+  background: var(--glass-soft); border:1px solid var(--hair); border-radius: var(--r-s);
+  padding: 8px 20px 8px 10px;
+  transition: background .25s var(--ease), box-shadow .28s var(--ease), transform .3s var(--spring);
+}
+.dim5:hover{ background: var(--glass); transform: translateY(-1px); }
+.dim5::after{
+  content:"›"; position:absolute; right:9px; top:6px; font-size:12px; line-height:1;
+  color: var(--ink-4); transition: transform .32s var(--spring), color .2s;
+}
+.dim5.on{
+  background: var(--glass);
+  box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 48%, transparent), var(--shadow-sm);
+}
+.dim5.on::after{ transform: rotate(90deg); color: var(--accent); }
+.dim5 .d1{ display:flex; align-items:baseline; justify-content:space-between; gap:4px; }
+.dim5 .dn{ font-size:10.5px; color: var(--ink-3); letter-spacing:.02em; white-space:nowrap; }
+.dim5 .dv{ font-size:12.5px; font-weight:700; font-variant-numeric: tabular-nums; color: var(--ink-1); letter-spacing:-.01em; }
+.dim5 .dv small{ font-size:9.5px; font-weight:500; color: var(--ink-4); }
+.dim5 .dt{ height:3px; border-radius:2px; margin-top:5px; background: color-mix(in srgb, var(--ink-1) 7%, transparent); overflow:hidden; }
+.dim5 .df{ height:100%; border-radius:2px; background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width .8s var(--spring); }
+
+.dimp-hint{ font-size:10.5px; color: var(--ink-4); letter-spacing:.03em; margin-top:9px; }
+#dimp:not(:empty){ margin-top:9px; animation: pop .34s var(--spring) both; }
+@keyframes pop{ from{ opacity:0; transform: translateY(-6px); } to{ opacity:1; transform:none; } }
+.dimp{ border:1px solid var(--hair); border-radius: var(--r-m); background: var(--glass-soft); padding: 12px 14px; }
+.dimp-hd{ display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; margin-bottom:9px; }
+.dimp-hd h3{ margin:0; font-size:13px; font-weight:650; color: var(--ink-1); letter-spacing:.01em; }
+.dimp-hd .band{
+  font-size:10.5px; padding:1px 8px; border-radius:999px; letter-spacing:.02em;
+  color: var(--accent); background: var(--accent-soft);
+  border:1px solid color-mix(in srgb, var(--accent) 22%, transparent);
+}
+.dimp-hd .pts{ margin-left:auto; font-size:14px; font-weight:700; font-variant-numeric: tabular-nums; letter-spacing:-.02em; }
+.dimp-hd .pts small{ font-size:10.5px; font-weight:500; color: var(--ink-4); }
+.pm{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+.pm .col h4{ margin:0 0 5px; font-size:10px; letter-spacing:.07em; color: var(--ink-4); font-weight:600; }
+.pm ul{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:4px; }
+.pm li{ font-size:12px; line-height:1.55; color: var(--ink-2); padding-left:14px; position:relative; }
+.pm li::before{ position:absolute; left:0; top:-1px; font-weight:700; font-size:12px; }
+.pm .p li::before{ content:"+"; color:#16a37a; }
+.pm .m li::before{ content:"−"; color:#c4703f; }
+.dimp .basis{ margin-top:10px; padding-top:9px; border-top:1px solid var(--hair);
+  font-size:11.5px; color: var(--ink-4); line-height:1.6; }
+.dimp .verd{ margin-top:5px; font-size:12.5px; line-height:1.65; color: var(--ink-2); }
+.dimp .verd b{ color: var(--ink-1); font-weight:600; }
+.dimp-empty{ font-size:12px; color: var(--ink-4); }
+
+.insight{ margin:0; font-size:14px; line-height:1.78; color: var(--ink-2); }
+.insight em{ font-style:normal; color: var(--ink-1); font-weight:600; box-shadow: inset 0 -0.5em 0 var(--accent-soft); }
+
+.duo{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; }
+.note{
+  border:1px solid var(--hair); border-radius: var(--r-s); padding: 11px 12px;
+  background: var(--glass-soft);
+}
+.note h3{ margin:0 0 5px; font-size:10.5px; letter-spacing:.07em; color: var(--ink-4); font-weight:600; }
+.note p{ margin:0; font-size:12.5px; line-height:1.68; color: var(--ink-2); }
+.note.warn h3{ color:#b4632f; }
+@media (prefers-color-scheme: dark){ .note.warn h3{ color:#f0a97f; } }
+
+.risks{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:7px; }
+.risks li{ position:relative; padding-left:15px; font-size:12.5px; line-height:1.62; color: var(--ink-2); }
+.risks li::before{
+  content:""; position:absolute; left:1px; top:8px; width:5px; height:5px; border-radius:50%;
+  background: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+.risks.neg li::before{ background:#e0764f; }
+
+.ev{ display:flex; gap:11px; padding: 9px 0; border-bottom:1px dashed var(--hair); }
+.ev:last-child{ border-bottom:0; }
+.ev .ed{ flex:0 0 74px; font-size:10.5px; color: var(--ink-4); font-variant-numeric: tabular-nums; letter-spacing:.02em; padding-top:1px; }
+.ev .ec{ flex:1 1 auto; min-width:0; }
+.ev .et{ font-size:12.5px; font-weight:600; color: var(--ink-1); }
+.ev .eb{ font-size:12px; color: var(--ink-3); line-height:1.6; margin-top:1px; }
+.ev .es{ font-size:10.5px; color: var(--ink-4); margin-top:2px; letter-spacing:.02em; }
+.ev .es a{
+  color: var(--accent); text-decoration:none;
+  border-bottom:1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+  transition: border-color .2s var(--ease);
+}
+.ev .es a:hover{ border-bottom-color: var(--accent); }
+.ev .es .sep{ margin:0 5px; opacity:.5; }
+
+.levels{ display:grid; grid-template-columns: repeat(4,1fr); gap:9px; }
+.lv{ border:1px solid var(--hair); border-radius: var(--r-s); padding: 10px 11px; background: var(--glass-soft); position:relative; overflow:hidden; }
+.lv::before{ content:""; position:absolute; left:0; top:0; bottom:0; width:2.5px; }
+.lv.p::before{ background: linear-gradient(180deg,#9aa0b4,#c3c7d6); }
+.lv.f::before{ background: linear-gradient(180deg,#5aa2ff,#7fb6ff); }
+.lv.a::before{ background: linear-gradient(180deg,#16a37a,#4ecfa4); }
+.lv.x::before{ background: linear-gradient(180deg,#e0764f,#f0a184); }
+.lv .ll{ font-size:10.5px; color: var(--ink-4); letter-spacing:.05em; }
+.lv .lvv{ font-size:14px; font-weight:650; letter-spacing:-.01em; margin-top:2px; font-variant-numeric: tabular-nums; color: var(--ink-1); }
+.lv .lh{ font-size:10.5px; color: var(--ink-4); margin-top:3px; line-height:1.45; }
+
+.toast{
+  position: fixed; left:50%; bottom: 34px; transform: translate(-50%, 16px);
+  background: rgba(24,24,32,.86); color:#fff; font-size:12.5px; letter-spacing:.02em;
+  padding: 10px 18px; border-radius:999px; backdrop-filter: blur(20px);
+  opacity:0; pointer-events:none; transition: opacity .3s var(--ease), transform .4s var(--spring);
+  z-index: 60;
+}
+.toast.on{ opacity:1; transform: translate(-50%,0); }
+
+footer{
+  display:flex; justify-content:space-between; gap:12px; flex-wrap:wrap;
+  font-size:10.5px; color: var(--ink-4); letter-spacing:.03em; padding: 4px 6px 0;
+}
+footer b{ font-weight:600; color: var(--ink-3); }
+
+:focus-visible{ outline: 2px solid color-mix(in srgb, var(--accent) 75%, transparent); outline-offset: 2px; border-radius: 8px; }
+
+/* ============ responsive ============ */
+@media (max-width: 1180px){
+  .main{ grid-template-columns: 306px minmax(0,1fr); }
+  .chain{ grid-template-columns: repeat(2, 1fr); }
+  .chain.n5{ grid-template-columns: repeat(3, 1fr); }
+  .dims5{ grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 900px){
+  .main{ display:flex; flex-direction:column; align-items:stretch; gap:13px; }
+  .col-list{ position: static; }
+  .rows{ display:grid; grid-template-columns: 1fr 1fr; gap:6px; }
+  .dims5{ grid-template-columns: repeat(2, 1fr); }
+  .duo{ grid-template-columns: 1fr; }
+  .pm{ grid-template-columns: 1fr; gap:9px; }
+  .levels{ grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 760px){
+  .app{ padding: 12px 12px 26px; gap:13px; }
+  .tq-right{ margin-left:0; width:100%; }
+  .themed h1{ font-size:19px; }
+  .stats{ grid-template-columns: 1fr 1fr 1fr; }
+  .chain{ grid-template-columns: 1fr; }
+  .chain.n3, .chain.n5{ grid-template-columns: 1fr; }
+  .lay .note{ min-height:0; }
+  .rows{ grid-template-columns: 1fr; }
+  .dhead h2{ font-size:21px; }
+  .ring{ flex:0 0 92px; width:92px; height:92px; }
+  .ring svg{ width:92px; height:92px; }
+  .ring .num{ font-size:22px; }
+  .dims5{ grid-template-columns: 1fr 1fr; }
+  .card-hd{ flex-direction: column; align-items: flex-start; gap: 1px; }
+}
+
+/* ============ a11y ============ */
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: 1ms !important; animation-iteration-count: 1 !important;
+     transition-duration: 1ms !important; scroll-behavior: auto !important; }
+}
+@media (prefers-reduced-transparency: reduce){
+  .glass, .search, .srow, .lay, .dim5, .stat, .lv, .note, .tag, .hchip{ background: #fff !important; }
+  .glass{ backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  .toast{ background:#14141c; }
+}
+@media (prefers-color-scheme: dark) and (prefers-reduced-transparency: reduce){
+  .glass, .search, .srow, .lay, .dim5, .stat, .lv, .note, .tag, .hchip{ background: #1a1a24 !important; }
+}
+@media (prefers-contrast: more){
+  .glass, .search, .srow, .lay, .dim5, .stat, .lv, .note, .tag{ border-width: 1.5px; }
+  .dim5 .dn, .srow .role, .ev .eb{ color: var(--ink-1); }
+}
+@media print{
+  .ambient, .col-list, .toast{ display:none !important; }
+  body{ background:#fff; }
+  .main{ display:block; }
+  .glass{ box-shadow:none; border:1px solid #ddd; background:#fff; backdrop-filter:none; }
+  .card{ break-inside: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="ambient" aria-hidden="true">
+  <span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span>
+</div>
+
+<div class="app">
+  <section class="glass card themed" id="themeHead"></section>
+
+  <section class="glass card" id="layerCard">
+    <div class="card-hd">
+      <h2>产业链层级排序<i>先定层级，再选公司</i></h2>
+      <span class="hd-note">卡点强度 0–10 · 越靠前越该先研究</span>
+    </div>
+    <div class="chain" id="chain"></div>
+  </section>
+
+  <section class="glass card" id="finCard">
+    <div class="card-hd">
+      <h2>优先研究标的财务口径<i>同一报告期、同一估值口径</i></h2>
+      <span class="hd-note" id="finNote"></span>
+    </div>
+    <div class="finwrap"><div id="fintable"></div></div>
+    <div class="fin-swipe" aria-hidden="true">← 左右滑动查看全部 11 列 →</div>
+    <div class="fin-foot" id="finFoot"></div>
+  </section>
+
+  <div class="main">
+    <aside class="col-list">
+      <section class="glass card">
+        <div class="card-hd">
+          <h2>优先研究标的<i>按综合分排序</i></h2>
+          <span class="hd-note" id="listCount"></span>
+        </div>
+        <div class="rows" id="rows" role="tablist" aria-label="标的排名"></div>
+        <div class="rows-foot" id="listFoot"></div>
+      </section>
+    </aside>
+    <div id="detail"></div>
+  </div>
+
+  <footer>
+    <span>数据截至 <b id="footDate"></b> · 评分规则 v1.0（卡脖子强度 30 / 下游覆盖 25 / 竞争格局 20 / 预期差 15 / 壁垒议价 10）</span>
+    <span id="footNote">本报告仅供研究参考，不构成个人投资建议</span>
+  </footer>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ============================================================
+   REPORT DATA — 只替换这个对象即可生成新报告
+   ============================================================ */
+const REPORT = {
+  meta: { generatedAt: "2026-10-18 10:20", demo: false, rubricVersion: "1.0", market: "A股",
+          finPeriod: "2026H1", priceDate: "2026-10-16",
+          finNote: "百济神州营收增速为 2026 Q2 单季（美元口径），与其余 H1 口径不同；纳微科技毛利率变动为公司表述「基本平稳」，按 0.0pct 记录。泰格医药归母净利为负、百利天恒毛利率未按整体口径披露，对应格子记 —。" },
+  rubric: { "卡脖子强度": 30, "下游覆盖": 25, "竞争格局": 20, "预期差": 15, "壁垒议价": 10 },
+  themes: [
+    {
+      id: "innovdrug",
+      query: "创新药",
+      date: "2026-10-18",
+      verdict: "真正的卡点不在分子，而在把分子变成可交付药品的两道关口：分离纯化的耗材，和能过全球多中心临床的注册能力。分子端在研数量已占全球约三成，供给不稀缺；耗材端仍由四家欧美日厂商主导，换供应商要重做工艺验证与注册变更。所以这条链上最先该研究的，是把卡点变成 71% 毛利率的那家填料公司。",
+      layers: [
+        { seg: "上游", nm: "分离纯化与培养耗材", s: 9, note: "色谱填料、层析介质、培养基。全球由 Cytiva、Tosoh、Bio-Rad、Merck 主导，换供应商要重做工艺验证与注册变更，12–24 个月；国产在商业化项目的渗透率约四分之一。", v: "优先研究", cls: "v1", codes: ["688690.SH"] },
+        { seg: "中游", nm: "全球多中心临床与注册", s: 8, note: "中国分子要卖到海外必须过 MRCT。国内能承接全球多中心、覆盖 40 国以上的机构极少，断档会让整条出海管线延期 12–18 个月。", v: "优先研究", cls: "v1", codes: ["300347.SZ"] },
+        { seg: "中游", nm: "差异化分子与平台", s: 7, note: "ADC、双抗、小核酸、GLP-1。不是断供逻辑而是能力逻辑：在研新药已占全球约 30%，同靶点拥挤，能不能做出全球前三才是约束。", v: "跟踪", cls: "v2", codes: ["688235.SH", "600276.SH", "688506.SH"] },
+        { seg: "中游", nm: "CDMO 与商业化生产", s: 5, note: "产能过剩、价格战，客户可随时换厂。它决定成本，不决定能不能做出来。", v: "观察", cls: "v3", codes: [] },
+        { seg: "下游", nm: "医保准入与国内商业化", s: 3, note: "决定卖多少钱，不决定能不能造。双目录 11 月发布、2027/1/1 施行，是节奏变量不是卡点。", v: "不优先", cls: "v3", codes: [] }
+      ],
+      stocks: [
+        {
+          code: "688690.SH", name: "纳微科技", role: "色谱填料 / 层析介质（分离纯化耗材）",
+          layer: "分离纯化与培养耗材", stage: "量产", action: "核心研究", confidence: "中高",
+          scores: { "卡脖子强度": 25, "下游覆盖": 20, "竞争格局": 15, "预期差": 13, "壁垒议价": 9 },
+          insight: "市场把它当「填料小公司」，实际它拿的是 GLP-1 与小核酸两条最热赛道的耗材敞口：<em>小核酸填料上半年增长 170%，多肽/胰岛素类填料增长 55%</em>，而净利增速 116% 是营收增速 37% 的三倍——增长来自结构，不是铺货。要跟踪的不是客户数（534 家已经够多），而是商业化项目占比：现在只有 25%，每往上走一个点，都是一次不可逆的工艺切换。",
+          position: "上游分离纯化环节，卖的是色谱填料与层析介质。它不是被卡的一方，而是替别人解卡的一方：客户从进口供应商换到它要重做验证，从它换回进口同样要重做，所以一旦进了商业化项目就很难被换掉。客户是药企与 CDMO，覆盖抗体/ADC、重组蛋白、疫苗、血液制品、胰岛素/多肽/小核酸/抗生素八类。",
+          why: "排第一是因为它同时满足三个条件：卡点在物理上真实（四家外资主导、换供应商 12–24 个月）、下游已经分散（534 家客户、八类药物）、议价已经兑现成数字（综合毛利率 71.45%、微球主业 78.94%、现金流/净利 0.80）。扣分在预期差与格局：股价 52 周区间 22.51–50.26，已从底部翻倍，故事不再便宜；国内也还有博格隆、赛分在追。",
+          evidence: [
+            { d: "2026-08-26", t: "2026 半年报", c: "营收 5.68 亿元 +37.28%，归母净利 1.37 亿元 +116.11%，扣非 1.27 亿元 +130.47%，综合毛利率 71.45%，经营现金流 1.09 亿元 +351.88%。", src: "上海证券报 · 纳微科技半年报", url: "https://www.cnstock.com/commonDetail/775858", page: "第 8–12 页 · 主要会计数据" },
+            { d: "2026-08-31", t: "投资者关系活动记录", c: "小核酸填料收入约 0.67 亿元 +170%；大分子层析介质 1.41 亿元 +42%；微球主业毛利率 78.94%，同比下降两个多百分点，因响应客户量大价优下调部分价格。", src: "同花顺 · 机构调研纪要", url: "https://news.10jqka.com.cn/20260831/c679426660.shtml" },
+            { d: "2026-08-27", t: "半年报（客户与阶段）", c: "药物合成与分离纯化微球客户 534 家，同比增 101 家；商业化项目（含新药注册）微球收入约 0.94 亿元，约占该类产品 25%；国际收入 0.56 亿元 +28%。", src: "仪器信息网 · 半年报解读", url: "https://www.instrument.com.cn/news/20260827/965886.shtml" }
+          ],
+          risks: [
+            "已为响应客户「量大价优」下调部分填料价格，微球主业毛利率同比降两个多百分点，议价权在松动。",
+            "全球仍由 Cytiva、Tosoh、Bio-Rad、Merck 主导，公司海外收入仅 0.56 亿元（占 10%），国产替代的天花板取决于药企敢不敢在商业化项目上换供应商。",
+            "小核酸与 GLP-1 都是订单脉冲型需求，客户产能规划一调整，增速会快速回落。"
+          ],
+          kill: "微球主业毛利率连续两个季度下滑，或商业化项目收入占比停滞在 25% 不升。",
+          gaps: ["商业化项目收入占比的季度变化", "海外收入占比能否突破 15%", "小核酸填料订单的客户集中度"],
+          levels: { price: "39.40", fair: "34–38（对应 2027 年约 40 倍）", add: "≤33", fail: "跌破 30（论点失效）" }
+        },
+        {
+          code: "688235.SH", name: "百济神州", role: "泽布替尼 / 替雷利珠单抗（全球商业化）",
+          layer: "差异化分子与平台", stage: "量产", action: "核心研究", confidence: "高",
+          scores: { "卡脖子强度": 18, "下游覆盖": 24, "竞争格局": 16, "预期差": 9, "壁垒议价": 10 },
+          insight: "它是这条链上唯一已经把「中国分子卖到全球」跑通的公司：Q2 全球总收入 17 亿美元 +30%，泽布替尼单季 12 亿美元（美国 8.93 亿），<em>GAAP 毛利率 90%、经营利润转正</em>。但这也意味着它的卡点属性最弱——BTK 赛道有四家，医生可以换药。买它不是买卡点，是买那张覆盖全球的商业化网络。",
+          position: "中游分子与平台环节，但同时自建了覆盖全球的商业化网络。位置上是 A 股里唯一不靠 BD 分成、能自己把药卖到欧美的创新药企。",
+          why: "排第二是因为下游覆盖最广（24/25）与议价最强（10/10），但卡脖子只有 18：泽布替尼是可替代的 best-in-class，不是不可替代的独家。预期差 9 也是拖累——全年指引已上调到 66–68 亿美元，市场知道了，分歧只剩估值。",
+          evidence: [
+            { d: "2026-08-05", t: "2026 Q2 业绩公告", c: "全球总收入 17 亿美元 +30%；泽布替尼 12 亿美元 +31%（美国 8.93 亿美元 +31%）；替雷利珠 2.29 亿美元 +18%；GAAP 毛利占产品收入 90%（上年 87%）。", src: "港交所 · 百济神州 Q2 公告", url: "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0805/2026080501449_c.pdf", page: "附件一 · 财务业绩" },
+            { d: "2026-08-05", t: "Q2 业绩公告（指引）", c: "上调 2026 全年总收入指引至 66–68 亿美元，GAAP 经营利润 10–11 亿美元，非 GAAP 17–18 亿美元。", src: "百济神州官网 · 新闻稿", url: "https://www.beonemedicines.com.cn/?p=34368/" },
+            { d: "2026-10-16", t: "行情与评级", c: "收盘 255.98 元，总市值 3,948 亿元，PE(TTM) 92.2 倍；19 位分析师目标价均值 341.51 元（区间 302.60–362.59）。", src: "富途 · 688235 行情与评级", url: "https://www.futunn.com/stock/688235-SH/forecast" }
+          ],
+          risks: [
+            "泽布替尼占 Q2 总收入约 71%，单产品依赖度极高；BTK 赛道伊布替尼、阿可替尼、匹妥布替尼同时在争新患。",
+            "PE(TTM) 92 倍已把 2026 年的经营杠杆打进去，指引再上调的空间在收窄，估值对增速失速极其敏感。",
+            "替雷利珠全球 2.29 亿美元、增速 18% 明显低于泽布替尼，国内医保降价压力持续。"
+          ],
+          kill: "泽布替尼单季增速跌破 20%，或美国市场出现明确的份额流失数据。",
+          gaps: ["H1 完整口径的经营现金流", "2027 年后泽布替尼的专利与竞品节奏", "BCL-2 等后续管线的读出时点"],
+          levels: { price: "255.98", fair: "230–260（对应 2027 年 GAAP 净利 45–50 倍）", add: "≤210", fail: "跌破 190（论点失效）" }
+        },
+        {
+          code: "600276.SH", name: "恒瑞医药", role: "创新药管线 + 对外授权",
+          layer: "差异化分子与平台", stage: "量产", action: "核心研究", confidence: "中高",
+          scores: { "卡脖子强度": 17, "下游覆盖": 23, "竞争格局": 17, "预期差": 11, "壁垒议价": 6 },
+          insight: "这份半年报被读成「净利零增长」，实际是一次换血：<em>仿制药收入 51.39 亿元下滑 16.07%，创新药 88.09 亿元增长 16.38%</em>，创新药占药品销售的比例一年内从 55.3% 提到 63.2%。真正难看的是扣非 -12.71% 与经营现金流 -53.8%，因为净利里有 8.21 亿元是 Kailera 股权公允价值变动——那不是经营赚的钱。",
+          position: "中游分子与平台环节，管线宽度国内第一（26 款 1 类新药），同时拥有国内最强的肿瘤商业化团队。它不靠单一分子，靠的是管线密度与 BD 议价能力。",
+          why: "排第三是因为竞争格局最好（17/20，管线宽度无人能及），但壁垒议价只有 6：毛利率 86.33% 同比还降了 0.25pct，经营现金流只有净利的 0.45 倍。预期差 11 是它最有价值的部分——BMS 6 亿美元首付 Q3 到账，H2 报表会跳变，而市场正在用 H1 的零增长给它定价。",
+          evidence: [
+            { d: "2026-08-19", t: "2026 半年报", c: "营收 154.56 亿元 -1.94%；归母净利 44.65 亿元 +0.34%；扣非 37.30 亿元 -12.71%；经营活动现金流净额 19.87 亿元 -53.80%；毛利率 86.33%，同比 -0.25pct。", src: "中证网 · 恒瑞半年报数据", url: "https://newzzbcx.cs.com.cn/cxnews_m.html?name=new20260819223614omgdidsb" },
+            { d: "2026-08-19", t: "半年报（业务结构）", c: "创新药收入 88.09 亿元 +16.38%，占药品销售 63.16%（上年同期 55.3%）；仿制药 51.39 亿元 -16.07%；非肿瘤创新药 25.45 亿元 +73.97%。", src: "新华网江苏 · 恒瑞 2026H1", url: "https://js.news.cn/20260820/35c8acc54a604efdace8886c1dc52c87/c.html" },
+            { d: "2026-08-19", t: "中期业绩公告（BD）", c: "与 BMS 合作 13 个早期项目，可确定付款 9.5 亿美元（含首付 6 亿美元），潜在总额约 152 亿美元；截至报告期末未确认收入，管理层预期 Q3 收到首付款。", src: "港交所 · 恒瑞中期业绩公告", url: "https://www1.hkexnews.hk/listedco/listconews/sehk/2026/0819/2026081901482_c.pdf", page: "管理层讨论与分析 · 第 3 节" }
+          ],
+          risks: [
+            "归母净利含 Kailera 股权公允价值变动收益 8.21 亿元，属非经常性；扣非 -12.71% 才是经营实况。",
+            "对外许可收入 14.22 亿元同比 -28.6%，且高度依赖「哪一季确认哪一笔」的会计节奏，不可外推。",
+            "仿制药下滑 16.07% 的速度快于创新药填补缺口的速度，这场赛跑还没分出胜负。"
+          ],
+          kill: "Q3 未收到 BMS 6 亿美元首付款，或创新药收入增速跌破 10%。",
+          gaps: ["BMS 首付款的确认时点与金额", "非肿瘤管线（代谢/自免/心血管）的放量斜率", "经营现金流何时回到净利的 0.8 倍以上"],
+          levels: { price: "44.86", fair: "46–52（对应 2027 年 40–45 倍）", add: "≤41", fail: "跌破 38（论点失效）" }
+        },
+        {
+          code: "300347.SZ", name: "泰格医药", role: "临床 CRO / 全球多中心临床",
+          layer: "全球多中心临床与注册", stage: "量产", action: "重点跟踪", confidence: "中",
+          scores: { "卡脖子强度": 21, "下游覆盖": 22, "竞争格局": 12, "预期差": 12, "壁垒议价": 6 },
+          insight: "全表最大的口径错杀：<em>归母净利 -4.13 亿元（-207.78%），扣非 +2.78 亿元（+31.8%）</em>。差额来自投资组合的公允价值损失，不是主业。经营端已经拐了：净新增订单加速、新签单价重回增长、合同负债 13.55 亿元较年初 +25.5%。市场在按归母定价，主业在按扣非改善。",
+          position: "中游临床开发环节，做的是把分子送进人体验证并完成注册。中国临床外包市占 10.9%（2025 年），是唯一进全球前十的中国公司；过去 20 年服务了 62% 的获批国产 1 类新药，2026H1 服务 31 个。海外覆盖 43 国、海外员工 2,019 人——这层能力是所有出海管线的必经关口。",
+          why: "排第四是因为卡点（21）与覆盖（22）都不低，但竞争格局只有 12：国内 CRO 供给充分，前期低价订单还在拖累毛利（27.53%，同比约 -2.6pct）。它是「环节很卡、公司不卡」的典型——要研究的是订单价格拐点，不是行业总量。",
+          evidence: [
+            { d: "2026-08-28", t: "2026 中期业绩", c: "营收 37.08 亿元 +14.1%；扣非归母净利 2.78 亿元 +31.8%；归母净利 -4.13 亿元 -207.78%；临床试验技术服务 17.74 亿元 +20.7%；中国区 21.06 亿元 +24.0%。", src: "泰格医药官网 · 2026 中期业绩", url: "https://tigermedgrp.com/zh/media-resources/press-releases/208" },
+            { d: "2026-08-28", t: "中期业绩（订单与现金）", c: "净新增订单较 2025 年同期加速增长，新签订单平均单价重回增长；合同负债 13.55 亿元较年初 +25.5%；经营现金流 4.26 亿元 +4.2%。", src: "中财网 · 泰格医药半年报点评", url: "https://data.cfi.cn/ybdata.aspx?id=20260913000135" },
+            { d: "2026-08-28", t: "中期业绩（全球能力）", c: "2026H1 服务 31 个获批国产 1 类新药；北美在执行项目数同比 +45%，澳大利亚与新西兰新增订单同比 +近 100%；员工 11,984 人覆盖 43 国。", src: "泰格医药 · 中期业绩新闻稿", url: "https://tigermedgrp.com/zh/media-resources/press-releases/208" }
+          ],
+          risks: [
+            "归母净利被投资组合公允价值损失拖成负数，PE(TTM) 455 倍已失真，单看 PE 会得出完全相反的结论。",
+            "临床试验技术服务毛利率 21.1%，同比仍在下降，因执行前期低价订单；价格修复要等新订单收入确认。",
+            "国内 CRO 供给充分，药明康德、康龙化成、昆翎在同一客户群里竞争，议价权弱。"
+          ],
+          kill: "新签订单单价再次转跌，或合同负债环比连续两个季度下降。",
+          gaps: ["归母与扣非差额中投资收益的具体构成", "新签订单的绝对金额（公司只披露增速）", "海外收入占比能否突破 50%"],
+          levels: { price: "50.07", fair: "54–60（对应 2027 年扣非 22–25 倍）", add: "≤46", fail: "跌破 42（论点失效）" }
+        },
+        {
+          code: "688506.SH", name: "百利天恒", role: "双抗 ADC（EGFR×HER3）",
+          layer: "差异化分子与平台", stage: "小批量", action: "观察名单", confidence: "低",
+          scores: { "卡脖子强度": 20, "下游覆盖": 10, "竞争格局": 15, "预期差": 12, "壁垒议价": 5 },
+          insight: "84 亿美元 BMS 大单、已收 10.5 亿美元，但 H1 营收只有 1.87 亿元、<em>归母亏损 16.37 亿元、经营现金流 -15.36 亿元</em>、净资产较年初 -30.38%。它证明了中国双抗 ADC 的技术定价能力，但还没证明能靠卖药活着。分析师目标价均值 399 元、现价 234 元——这个差额赌的是管线，不是当期报表。",
+          position: "中游分子与平台环节，全球首个获批的 EGFR×HER3 双抗 ADC。位置很靠前，但商业阶段很靠后：只获批鼻咽癌与食管鳞癌两个小适应症，2026H1 药品销售 1.86 亿元。",
+          why: "排最后不是因为它不卡（卡点 20 高于恒瑞的 17），而是下游覆盖只有 10：没有商业化收入就没有议价，研发费用 14.83 亿元等于营收的 791%，靠 BD 首付款续命。这类公司的分数上限，被「还没开始卖药」这件事锁住了。",
+          evidence: [
+            { d: "2026-08-26", t: "2026 半年报", c: "营收 1.87 亿元 +9.43%；归母净利 -16.37 亿元（上年 -11.18 亿元）；研发费用 14.83 亿元 +42.75%，占营收 791.46%；经营现金流 -15.36 亿元；归母净资产 46.10 亿元，较年初 -30.38%。", src: "蓝鲸财经 · 百利天恒半年报", url: "https://www.lanjinger.com/d/1787795554916859505" },
+            { d: "2026-08-26", t: "半年报（产品与 BD）", c: "宜泽康 6 月获批鼻咽癌、7 月获批食管鳞癌，为全球首个双抗 ADC；BMS 合作潜在总额 84 亿美元，已收首付 8 亿美元及首笔里程碑 2.5 亿美元；长期借款 38.14 亿元，期末现金 33.99 亿元。", src: "上海证券报 · 百利天恒 2026H1", url: "https://www.bio1000.com/jkkux/202608/2595.html" },
+            { d: "2026-10-16", t: "行情与评级", c: "收盘 233.88 元，总市值 965.6 亿元，PE(TTM) 为负；分析师目标价均值 399.05 元（区间 336.12–503.52）。", src: "富途 · 688506 行情与评级", url: "https://www.futunn.com/stock/688506-SH" }
+          ],
+          risks: [
+            "首付款不可持续：8 亿美元 + 2.5 亿美元已入账，若没有新交易接续，报表会迅速回到亏损扩大的轨道。",
+            "长期借款 38.14 亿元、一年内到期 12.75 亿元，资产负债率约 58.3%，现金 33.99 亿元——融资节奏决定研发节奏。",
+            "ADC 赛道拥挤（科伦博泰、映恩、恒瑞同场），双抗 ADC 的先发优势需要用大适应症数据守住。"
+          ],
+          kill: "三阴乳腺癌 NDA 未获批，或 BMS 里程碑付款出现推迟。",
+          gaps: ["宜泽康上市后首个完整季度销售额", "三阴乳腺癌 NDA 审评进度", "后续是否有新 BD 首付款接续"],
+          levels: { price: "233.88", fair: "—（亏损期无稳定盈利锚）", add: "—", fail: "跌破 185（52 周低点上方）" }
+        }
+      ]
+    }
+  ]
+};
+
+const SCORE_NOTES = {
+  "688690.SH": {
+    "卡脖子强度": {
+      band: "22–26 档",
+      plus: ["色谱填料/层析介质长期由 Cytiva、Tosoh、Bio-Rad、Merck 四家主导，国产在商业化项目渗透率仅约 25%", "药企更换填料属工艺变更，需重新做工艺验证与注册变更，周期 12–24 个月", "断供会直接导致纯化产线无法投产，不是降规而停产"],
+      minus: ["公司是替代者不是垄断者：客户仍可继续用进口产品，反过来换回进口同样要重做验证", "国内还有博格隆、赛分科技在同一条替代路径上"],
+      basis: "2026 半年报（8/26）商业化项目微球收入约 0.94 亿元、占该类 25%；8/31 机构调研纪要披露产品与客户结构",
+      verd: "给 25 不给 27：填料本身是真卡点，但纳微不是唯一解，它的价值来自「换掉进口」而不是「别人绕不过它」。"
+    },
+    "下游覆盖": {
+      band: "18–22 档",
+      plus: ["客户 534 家，同比增 101 家，覆盖抗体（含 ADC）、重组蛋白、疫苗、血液制品、胰岛素、多肽、小核酸、抗生素八类", "超 60 个抗体/ADC 项目处于三期或注册阶段，20 余个抗体、2 个重组白蛋白已转商业化生产", "小核酸填料 +170%、中小分子填料 +55%，两个增量赛道同时在花钱"],
+      minus: ["海外收入仅 0.56 亿元、占 10%，全球覆盖还很薄", "客户数多但单客户金额小，商业化项目只占四分之一"],
+      basis: "2026 半年报业务结构；8/27 半年报解读披露客户数与商业化项目占比",
+      verd: "给 20 不给 23：下游个数够，但真正的钱（商业化放量）还在爬坡，海外几乎没打开。"
+    },
+    "竞争格局": {
+      band: "13–16 档",
+      plus: ["全球 CR3 由外资主导，价格体系稳定，国产替代有明确的价格空间", "填料需绑定客户工艺，一旦进入商业化项目粘性极强"],
+      minus: ["国产阵营已有博格隆、赛分科技，替代者之间开始比价", "公司已为响应「量大价优」下调部分填料价格，说明买方仍有议价能力"],
+      basis: "8/31 调研纪要：微球主业毛利率 78.94%，同比下降两个多百分点，原因含下调部分产品价格",
+      verd: "给 15 不给 17：全球格局清晰，但国产这一侧还不止它一家，替代者之间已经在让价。"
+    },
+    "预期差": {
+      band: "13–15 档",
+      plus: ["市场按「填料小公司」给它定价，实际增长来自小核酸（+170%）与多肽/胰岛素（+55%）两个最热赛道的耗材敞口", "净利 +116% 是营收 +37% 的三倍，经营杠杆刚显现，卖方覆盖仍偏薄", "上半年新增 101 家客户，属可核验的份额扩张而非单价驱动"],
+      minus: ["股价 52 周区间 22.51–50.26，已从底部翻倍，认知差正在被消化"],
+      basis: "2026 半年报；8/31 调研纪要；10/16 行情（39.40 元、市值 159.1 亿元、PE 58.2 倍）",
+      verd: "给 13 不给 15：事实明确且与共识相反（它被当耗材股，实际是 GLP-1 与小核酸的 beta），但股价已经反映了大半。"
+    },
+    "壁垒议价": {
+      band: "9–10 档",
+      plus: ["综合毛利率 71.45%，微球主业 78.94%，属高端耗材定价区间", "净利 1.37 亿元对应经营现金流 1.09 亿元，现金流/净利 0.80，回款能力同比大幅改善", "客户切换成本高，认证粘性强"],
+      minus: ["没有涨价案例，反而在下调部分产品价格", "合成载体等新产品毛利明显低于填料，产品结构变化会稀释整体毛利"],
+      basis: "2026 半年报：毛利率 71.45%、经营现金流 +351.88%；8/31 调研纪要披露产品毛利差异",
+      verd: "给 9 不给 10：毛利率与现金流都够格，但缺「涨价或预付款」这一条正向证据，议价是守成不是扩张。"
+    }
+  },
+  "688235.SH": {
+    "卡脖子强度": {
+      band: "15–21 档",
+      plus: ["泽布替尼是全球 BTK 抑制剂里的 best-in-class，Q2 单季 12 亿美元、美国 8.93 亿美元", "自建全球商业化网络，覆盖数十个市场，这张网络本身难以复制"],
+      minus: ["BTK 赛道还有伊布替尼、阿可替尼、匹妥布替尼，医生可以换药，不存在断供式卡点", "替雷利珠单抗面临 PD-1 同质化竞争"],
+      basis: "2026 Q2 业绩公告（8/5）：泽布替尼 12 亿美元 +31%；替雷利珠 2.29 亿美元 +18%",
+      verd: "给 18 不给 22：分子端是份额竞争不是供给约束，断供了患者有替代药，这是本维度分数上不去的根本原因。"
+    },
+    "下游覆盖": {
+      band: "23–25 档",
+      plus: ["产品在欧美日等主要市场同步销售，Q2 美国单市场泽布替尼 8.93 亿美元", "血液肿瘤 + 实体瘤（替雷利珠）+ 安进授权产品三条线同时在卖，Q2 分别 12 亿 / 2.29 亿 / 1.57 亿美元", "全球商业化团队已建成，新增管线可直接复用渠道"],
+      minus: ["中国区占比小，国内放量仍受医保支付约束"],
+      basis: "2026 Q2 业绩公告分产品收入；公司覆盖市场说明",
+      verd: "给 24 不给 25：三条产品线都在花钱、且以美元计价，这是全表最广的覆盖；扣 1 分因国内基本盘贡献有限。"
+    },
+    "竞争格局": {
+      band: "13–16 档",
+      plus: ["BTK 全球实质参与者四家，百济在新患份额上领先", "血液瘤领域临床数据壁垒高，新进入者需要头对头试验"],
+      minus: ["同靶点竞品仍在做头对头，份额不是锁定的", "2028 年后泽布替尼面临专利与生物类似药的双重压力"],
+      basis: "2026 Q2 业绩公告；BTK 赛道竞品公开临床进展",
+      verd: "给 16 不给 17：格局清晰但挑战者明确存在，且专利窗口是可预见的终点。"
+    },
+    "预期差": {
+      band: "9–12 档",
+      plus: ["全年指引已上调至 66–68 亿美元，GAAP 经营利润 10–11 亿美元，经营杠杆释放快于卖方原模型", "分析师目标价均值 341.51 元，较现价 255.98 元有空间"],
+      minus: ["上调指引这件事市场已经知道，方向没有分歧，只剩估值分歧", "卖方覆盖密集，19 位分析师在跟踪"],
+      basis: "2026 Q2 业绩公告指引；富途 10/17 评级与目标价",
+      verd: "给 9 不给 12：这是「故事都知道了」的典型，分歧在给多少倍，不在会不会发生。"
+    },
+    "壁垒议价": {
+      band: "9–10 档",
+      plus: ["Q2 GAAP 毛利占产品收入 90%，上年同期 87%，同比 +3pct", "毛利率提升来自产品结构（泽布替尼占比上升）与生产效率，不是一次性因素", "经营利润已转正，说明定价能覆盖全球商业化成本"],
+      minus: ["无涨价案例，美国药价受政策与 PBM 谈判压制"],
+      basis: "2026 Q2 业绩公告毛利率与经营利润",
+      verd: "给 10 分：90% 毛利率 + 经营利润转正 + 结构改善，这一维度它没有短板。"
+    }
+  },
+  "600276.SH": {
+    "卡脖子强度": {
+      band: "15–21 档",
+      plus: ["26 款 1 类新药获批，管线宽度国内第一，2026H1 又有 4 款创新药及新适应症获批", "在肿瘤、代谢、自免、心血管四个治疗领域同时有商业化产品"],
+      minus: ["没有任何一个分子是不可替代的，同靶点均有 2 家以上竞品", "创新药收入增速 16.38%，说明放量靠准入推进而非独家定价"],
+      basis: "2026 半年报（8/19）：创新药收入 88.09 亿元 +16.38%；26 款 1 类新药",
+      verd: "给 17 不给 21：管线最宽，但宽度不等于卡点，断供任何一个分子下游都能换药。"
+    },
+    "下游覆盖": {
+      band: "23–25 档",
+      plus: ["创新药 88.09 亿元 +16.38%，仿制药 51.39 亿元仍是现金流基本盘", "非肿瘤创新药 25.45 亿元 +73.97%，代谢/自免/心血管三条新线同时起量", "13 笔海外交易、潜在总额约 420 亿美元，覆盖 BMS、GSK、MSD、IDEAYA 等多家买方"],
+      minus: ["海外收入尚未形成稳定销售，主要靠授权首付款，不是产品覆盖"],
+      basis: "2026 半年报分产品结构与 BD 清单",
+      verd: "给 23 不给 25：国内终端覆盖确实最广，但海外是授权不是卖药，覆盖的含金量打了折。"
+    },
+    "竞争格局": {
+      band: "17–20 档",
+      plus: ["国内创新药管线数量与获批数量均第一，同靶点里通常是第一批上市", "13 笔海外交易说明跨国药企认可其分子的稀缺性", "研发投入 46.05 亿元，规模效应带来试错次数优势"],
+      minus: ["国内同靶点内卷严重，PD-1、GLP-1 都是多家混战"],
+      basis: "2026 半年报：研发投入 46.05 亿元 +18.96%；对外许可收入 14.22 亿元",
+      verd: "给 17 不给 19：供给端它是最有纪律的一家，但所在赛道整体拥挤，公司纪律救不了行业价格。"
+    },
+    "预期差": {
+      band: "9–12 档",
+      plus: ["市场按「净利零增长」定价，实际是仿制药 -16.07% 出清、创新药 +16.38% 接棒的结构切换", "BMS 6 亿美元首付 Q3 到账，截至半年报未确认收入，H2 报表会出现台阶式跳变", "股权公允价值收益 8.21 亿元被混在净利里，市场同时高估了经营质量与低估了换血进度"],
+      minus: ["卖方覆盖极密集，恒瑞是创新药板块的默认标的，认知差不深"],
+      basis: "2026 半年报：归母 +0.34%、扣非 -12.71%；港交所公告确认 BMS 首付未确认收入",
+      verd: "给 11 不给 13：换血这件事有可验证的时点（Q3 首付），但被卖方反复讨论过，不算真正的冷门认知。"
+    },
+    "壁垒议价": {
+      band: "4–6 档",
+      plus: ["毛利率 86.33%，绝对水平仍是创新药企业里的高位"],
+      minus: ["毛利率同比 -0.25pct，Q2 单季 -1.75pct，方向向下", "经营现金流 19.87 亿元 -53.8%，只有净利的 0.45 倍，净现比偏弱", "扣非 -12.71%，说明议价没有转化成可持续的经营利润"],
+      basis: "2026 半年报：毛利率、经营现金流、扣非净利三项",
+      verd: "给 6 不给 8：毛利率高但方向朝下，现金流只有净利的一半，卡点没有变成现金——这正是它进不了 S 级的原因。"
+    }
+  },
+  "300347.SZ": {
+    "卡脖子强度": {
+      band: "15–21 档",
+      plus: ["中国临床外包市占 10.9%（2025 年），唯一进入全球前十的中国公司", "过去 20 年服务 62% 的获批国产 1 类新药，2026H1 服务 31 个", "覆盖 43 国、海外员工 2,019 人，是出海管线做 MRCT 的实际入口"],
+      minus: ["CRO 可替换，换供应商需转移数据与伦理重审，但周期 6–18 个月，不到停线级别", "外资 CRO（IQVIA、ICON）在 global trial 上更强"],
+      basis: "2026 中期业绩（8/28）：市占 10.9%、覆盖 43 国、服务 31 个 1 类新药",
+      verd: "给 21 不给 22：环节确实卡在「能过 FDA 的多中心能力」上，但公司不是唯一能做的一方，且替换不是不可行。"
+    },
+    "下游覆盖": {
+      band: "18–22 档",
+      plus: ["客户覆盖国内创新药企 + 跨国药企（SMO 业务受益于 MNC 订单），在手 SMO 项目 3,094 个", "中国区收入 21.06 亿元 +24.0%，境外 16.02 亿元 +3.2%，两个市场同时在跑", "服务对象横跨肿瘤、自免、代谢等多个治疗领域"],
+      minus: ["境外增速仅 3.2%，海外覆盖广但不深，北美在执行项目 +45% 是从低基数起"],
+      basis: "2026 中期业绩：分地区收入、SMO 在手项目数",
+      verd: "给 22 不给 23：客户面够宽，但真正在花钱的增量集中在中国区，海外还在爬坡。"
+    },
+    "竞争格局": {
+      band: "8–12 档",
+      plus: ["国内临床 CRO 龙头，市占率从 10.6% 升到 10.9%，份额在向头部集中"],
+      minus: ["国内 CRO 供给充分，药明康德、康龙化成、昆翎同场竞争", "临床试验技术服务毛利率 21.1%、整体 27.53%，同比约 -2.6pct，因执行前期低价订单", "价格战已经在报表上体现，不是预期"],
+      basis: "2026 中期业绩：毛利率 27.53%，临床试验技术服务毛利率 21.1%；中财网点评确认低价订单影响",
+      verd: "给 12 不给 13：这是本表唯一明确在打价格战的环节，供给端没有纪律，分数必须压住。"
+    },
+    "预期差": {
+      band: "13–15 档",
+      plus: ["归母 -4.13 亿元（-207.78%）与扣非 +2.78 亿元（+31.8%）方向相反，市场按归母定价，实际主业在改善", "净新增订单加速、新签单价重回增长，两个领先指标同时转向", "合同负债 13.55 亿元较年初 +25.5%，是未来收入的可见度"],
+      minus: ["订单只有增速没有绝对金额，可验证性打折"],
+      basis: "2026 中期业绩：归母/扣非差额；中财网点评披露订单与合同负债数据",
+      verd: "给 12 不给 13：口径错杀这件事足够明确，但缺绝对金额与投资收益明细，证据强度差一口气。"
+    },
+    "壁垒议价": {
+      band: "4–6 档",
+      plus: ["经营现金流 4.26 亿元 +4.2%，在归母亏损的情况下仍为正"],
+      minus: ["毛利率 27.53%、同比约 -2.6pct，被客户压价", "临床试验技术服务毛利率仅 21.1%，是高强度人力生意", "PE(TTM) 455 倍已失真，估值端无有效锚"],
+      basis: "2026 中期业绩：毛利率、经营现金流；东财 10/16 估值数据",
+      verd: "给 6 不给 7：现金流稳但毛利被压，议价权在客户手里，这是 CRO 这门生意的结构性问题。"
+    }
+  },
+  "688506.SH": {
+    "卡脖子强度": {
+      band: "15–21 档",
+      plus: ["宜泽康是全球首个获批的 EGFR×HER3 双抗 ADC，2026 年 6 月鼻咽癌、7 月食管鳞癌获批", "BMS 愿以 84 亿美元潜在总额买海外权益，说明分子在全球范围内稀缺"],
+      minus: ["ADC 赛道拥挤，科伦博泰、映恩、恒瑞同场；单抗 ADC 已有成熟竞品", "医生可换药，药端的「断供」概念不成立"],
+      basis: "2026 半年报（8/26）：产品获批信息、BMS 合作条款",
+      verd: "给 20 不给 22：分子稀缺性是真的，但稀缺不等于不可替代，双抗 ADC 的先发窗口有限。"
+    },
+    "下游覆盖": {
+      band: "5–11 档",
+      plus: ["已获批鼻咽癌、食管鳞癌两个适应症，三阴乳腺癌 NDA 已受理", "全球 100 余项临床试验在跑（中国 90 余项、海外 11 项），32 项关键注册临床"],
+      minus: ["2026H1 药品销售仅 1.86 亿元，商业化几乎从零开始", "只有两个小适应症，终端覆盖极窄", "收入主要靠 BD 首付款，不是产品"],
+      basis: "2026 半年报：营业收入 1.87 亿元、药品销售 1.86 亿元",
+      verd: "给 10 不给 12：管线很宽，但「正在花钱的终端」几乎为零，这一维度按商业化实况打分，不按管线数量打分。"
+    },
+    "竞争格局": {
+      band: "13–16 档",
+      plus: ["双抗 ADC 全球唯一获批，先发优势明确", "BMS 背书降低了海外商业化门槛"],
+      minus: ["ADC 供给端玩家多，靶点组合正在被快速跟进", "先发优势需要大适应症数据守住，否则会被后来者以疗效超越"],
+      basis: "2026 半年报管线；ADC 同业公开进展",
+      verd: "给 15 不给 17：全球唯一获批是硬事实，但赛道参与者数量不支持 17 分以上的格局判断。"
+    },
+    "预期差": {
+      band: "9–12 档",
+      plus: ["分析师目标价均值 399.05 元 vs 现价 233.88 元，市场对管线的定价分歧极大", "首付款 10.5 亿美元已入账但未转化为收入，报表与现金流的错位容易被误读", "三阴乳腺癌 NDA 若获批，是下一个可验证的台阶"],
+      minus: ["84 亿美元大单是 2024 年的事，故事已被充分传播", "亏损扩大方向明确，没有「市场误判」的证据"],
+      basis: "2026 半年报；富途 10/17 评级与目标价",
+      verd: "给 12 不给 13：分歧很大但共识方向不错（都知道是好管线），差的是「哪一件被低估的事实」，说不出来。"
+    },
+    "壁垒议价": {
+      band: "4–6 档",
+      plus: ["BMS 愿意付 8 亿美元首付，是对分子的定价认可"],
+      minus: ["研发费用 14.83 亿元 = 营收的 791%，无产品议价可言", "经营现金流 -15.36 亿元，靠融资与首付款续命", "长期借款 38.14 亿元、资产负债率约 58.3%，财务成本在上升"],
+      basis: "2026 半年报：研发费用率、经营现金流、有息负债",
+      verd: "给 5 不给 7：分子能卖出价，公司还卖不出药——议价能力停在授权桌上，没进到产品毛利里。"
+    }
+  }
+};
+
+const FIN = {
+  "688690.SH": { px: "39.40", mcap: "159.1", pe: "58.2", rev: "+37.3", np: "+116.1", gm: "71.45", gmd: "0.0", ocf: "0.80" },
+  "688235.SH": { px: "255.98", mcap: "3,948", pe: "92.2", rev: "+30.0", np: "—", gm: "90.0", gmd: "+3.0", ocf: "—" },
+  "600276.SH": { px: "44.86", mcap: "2,977", pe: "44.2", rev: "-1.9", np: "+0.3", gm: "86.33", gmd: "-0.25", ocf: "0.45" },
+  "300347.SZ": { px: "50.07", mcap: "431", pe: "455", rev: "+14.1", np: "-207.8", gm: "27.53", gmd: "-2.6", ocf: "—" },
+  "688506.SH": { px: "233.88", mcap: "965.6", pe: "—", rev: "+9.4", np: "-46.0", gm: "—", gmd: "—", ocf: "—" }
+};
+
+/* ============================================================
+   ENGINE — 一般不需要改动
+   ============================================================ */
+const $ = (s) => document.querySelector(s);
+const DIMS = Object.keys(REPORT.rubric);
+const C = 2 * Math.PI * 45;
+const state = { themeId: null, stockCode: null, dim: null };
+
+function esc(s){
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+function rawTotal(st){
+  return DIMS.reduce((a, k) => a + (Number(st.scores && st.scores[k]) || 0), 0);
+}
+function scoreInfo(st){
+  const raw = rawTotal(st);
+  const s = st.scores || {};
+  const missing = DIMS.some((k) => !Number(s[k]));
+  let cap = 100, reason = "";
+  if ((s["卡脖子强度"] || 0) <= 10) { cap = Math.min(cap, 55); reason = "卡脖子强度 ≤10，总分封顶 55"; }
+  if ((s["下游覆盖"] || 0) <= 8) { cap = Math.min(cap, 65); reason = "下游覆盖 ≤8，总分封顶 65"; }
+  if ((s["预期差"] || 0) <= 5 && (s["竞争格局"] || 0) <= 10) { cap = Math.min(cap, 60); reason = "预期差与竞争格局双低，总分封顶 60"; }
+  const final = Math.min(raw, cap);
+  let tier, cat;
+  if (final >= 80) { tier = "S"; cat = "核心研究"; }
+  else if (final >= 65) { tier = "A"; cat = "重点跟踪"; }
+  else if (final >= 50) { tier = "B"; cat = "观察名单"; }
+  else { tier = "C"; cat = "暂缓"; }
+  return { raw, final, capped: final < raw, reason, tier, cat, missing };
+}
+const theme = () => REPORT.themes.find((t) => t.id === state.themeId) || REPORT.themes[0];
+const stock = () => { const t = theme(); return t.stocks.find((s) => s.code === state.stockCode) || t.stocks[0]; };
+function ranked(){
+  return theme().stocks.slice().sort((a, b) => scoreInfo(b).final - scoreInfo(a).final);
+}
+
+/* ---------- theme head ---------- */
+function renderHead(){
+  const t = theme();
+  const list = ranked();
+  const scores = list.map((s) => scoreInfo(s).final);
+  const high = scores.filter((x) => x >= 65).length;
+  const chips = REPORT.themes.map((x) =>
+    '<button class="hchip ' + (x.id === t.id ? "on" : "") + '" role="tab" aria-selected="' + (x.id === t.id) +
+    '" data-theme="' + esc(x.id) + '">' + esc(x.query) + "</button>"
+  ).join("");
+  $("#themeHead").innerHTML =
+    '<div class="tq">' +
+      "<h1>" + esc(t.query) + "</h1>" +
+      '<span class="tagline">' + esc(REPORT.meta.market) + " · 产业链卡点</span>" +
+      '<span class="hd-note">研究日 ' + esc(t.date) + "</span>" +
+      '<span class="tq-right">' +
+        (REPORT.meta.demo ? '<span class="badge-demo">示例数据</span>' : "") +
+        '<button class="btn-ghost" type="button" id="copy">复制结论</button>' +
+      "</span>" +
+    "</div>" +
+    '<div class="split"><p class="verdict">' + esc(t.verdict) + "</p>" +
+    '<div class="stats">' +
+      '<div class="stat"><div class="sl">优先研究标的</div><div class="sv">' + t.stocks.length + "<small>只</small></div></div>" +
+      '<div class="stat"><div class="sl">A 级以上</div><div class="sv">' + high + "<small>只</small></div></div>" +
+      '<div class="stat"><div class="sl">最高分</div><div class="sv">' + scores[0] + "<small>/100</small></div></div>" +
+    "</div></div>" +
+    '<div class="histchips"><span class="lab">已有分析</span>' + chips + "</div>";
+  $("#footDate").textContent = t.date;
+  const cp = $("#copy");
+  if (cp) cp.addEventListener("click", copyConclusion);
+  $("#themeHead").querySelectorAll(".hchip").forEach((el) => {
+    el.addEventListener("click", () => {
+      state.themeId = el.dataset.theme;
+      state.stockCode = ranked()[0].code;
+      state.dim = null;
+      renderAll();
+    });
+  });
+}
+
+/* ---------- layer chain ---------- */
+function renderLayers(){
+  const t = theme();
+  $("#chain").className = "chain n" + t.layers.length;
+  $("#chain").innerHTML = t.layers.map((l, i) => {
+    const dots = Array.from({ length: 10 }, (_, k) => '<i class="' + (k < l.s ? "f" : "") + '"></i>').join("");
+    return '<div class="lay ' + (i === 0 ? "top" : "") + '">' +
+      '<div class="l1"><span class="ln">' + (i + 1) + '</span><span class="seg">' + esc(l.seg) + "</span></div>" +
+      '<div class="nm">' + esc(l.nm) + "</div>" +
+      '<div class="note">' + esc(l.note) + "</div>" +
+      '<div class="l3">' +
+        '<span class="dots" aria-hidden="true">' + dots + "</span>" +
+        '<span class="sv">' + l.s + "/10</span>" +
+        '<span class="verdict ' + l.cls + '">' + esc(l.v) + "</span>" +
+      "</div></div>";
+  }).join("");
+}
+
+/* ---------- rank list ---------- */
+function renderList(){
+  const list = ranked();
+  $("#rows").innerHTML = list.map((s, i) => {
+    const si = scoreInfo(s);
+    const on = s.code === state.stockCode;
+    return '<div class="srow ' + (on ? "on" : "") + '" role="tab" tabindex="0" aria-selected="' + on +
+      '" aria-label="' + esc(s.name) + " 综合 " + si.final + ' 分" data-code="' + esc(s.code) + '">' +
+      '<span class="rk">' + String(i + 1).padStart(2, "0") + "</span>" +
+      '<span class="nm">' + esc(s.name) + "</span>" +
+      '<span class="sc ' + (si.missing ? "NA" : si.tier) + '">' + (si.missing ? "—" : si.final) + "</span>" +
+      '<span class="cd">' + esc(s.code) + "</span>" +
+      '<span class="role">' + esc(s.role) + "</span>" +
+      '<span class="line"><i style="width:' + si.final + '%"></i></span>' +
+      "</div>";
+  }).join("");
+  $("#listCount").textContent = list.length + " 只";
+  const top = list[0], ti = scoreInfo(top);
+  $("#listFoot").textContent = "排序口径：五维加总，卡脖子强度权重最高。第一名 " + top.name + " " + ti.final +
+    " 分，" + ti.cat + "。分数是研究顺序，不是预期收益。";
+  $("#rows").querySelectorAll(".srow").forEach((el) => {
+    const pick = () => {
+      state.stockCode = el.dataset.code;
+      state.dim = null;
+      renderList();
+      renderDetail();
+      if (window.innerWidth <= 900) {
+        const d = $("#detail");
+        if (d) d.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    };
+    el.addEventListener("click", pick);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); pick(); }
+    });
+  });
+}
+
+/* ---------- detail ---------- */
+function renderDetail(){
+  const s = stock();
+  const si = scoreInfo(s);
+  const t = theme();
+  const list = ranked();
+  const idx = list.findIndex((x) => x.code === s.code) + 1;
+  const off = C * (1 - Math.max(0, Math.min(100, si.final)) / 100);
+  const dims = DIMS.map((k) => {
+    const w = REPORT.rubric[k], v = Number(s.scores[k]) || 0;
+    const on = state.dim === k;
+    return '<div class="dim5' + (on ? " on" : "") + '" role="button" tabindex="0" aria-expanded="' + on +
+      '" data-dim="' + esc(k) + '" title="点击查看 ' + esc(k) + ' 的得分点">' +
+      '<div class="d1"><span class="dn">' + esc(k) + '</span><span class="dv">' + v + "<small>/" + w + "</small></span></div>" +
+      '<div class="dt"><div class="df" style="width:' + Math.round(v / w * 100) + '%"></div></div>' +
+      "</div>";
+  }).join("");
+  const ev = (s.evidence || []).map((e) => {
+    const src = e.url
+      ? '<a href="' + esc(e.url) + '" target="_blank" rel="noopener noreferrer">' + esc(e.src) + " ↗</a>"
+      : esc(e.src);
+    return '<div class="ev"><div class="ed">' + esc(e.d) + "</div>" +
+      '<div class="ec"><div class="et">' + esc(e.t) + "</div>" +
+      '<div class="eb">' + esc(e.c) + "</div>" +
+      '<div class="es">来源 · ' + src +
+        (e.page ? '<span class="sep">·</span>' + esc(e.page) : "") +
+      "</div></div></div>";
+  }).join("");
+  const risks = (s.risks || []).map((r) => "<li>" + esc(r) + "</li>").join("");
+  const gaps = (s.gaps || []).map((g) => "<li>" + esc(g) + "</li>").join("");
+  const lv = s.levels || {};
+
+  $("#detail").innerHTML =
+  '<section class="glass card">' +
+    '<div class="dhead">' +
+      '<div class="hl">' +
+        '<div class="h1"><h2>' + esc(s.name) + "</h2>" +
+          '<span class="code">' + esc(s.code) + "</span>" +
+          '<span class="sc ' + (si.missing ? "NA" : si.tier) + '">' + (si.missing ? "—" : si.final) + "</span></div>" +
+        '<div class="role">' + esc(s.role) + "</div>" +
+        '<div class="tags">' +
+          '<span class="tag k">' + esc(s.layer) + "</span>" +
+          '<span class="tag">' + esc(s.stage) + "</span>" +
+          '<span class="tag">' + esc(s.action) + "</span>" +
+          '<span class="tag">置信度 ' + esc(s.confidence) + "</span>" +
+          '<span class="tag">主题内第 ' + idx + " / " + t.stocks.length + "</span>" +
+        "</div>" +
+      "</div>" +
+      '<div class="ring">' +
+        '<svg viewBox="0 0 108 108" role="img" aria-label="综合评分 ' + si.final + ' 分">' +
+          "<defs><linearGradient id=\"rg\" x1=\"0\" y1=\"1\" x2=\"1\" y2=\"0\">" +
+            '<stop offset="0%" stop-color="var(--accent)"/>' +
+            '<stop offset="100%" stop-color="var(--accent-2)"/>' +
+          "</linearGradient></defs>" +
+          '<circle class="rtrack" cx="54" cy="54" r="45"></circle>' +
+          '<circle class="rfill" cx="54" cy="54" r="45" transform="rotate(-90 54 54)" stroke-dasharray="' +
+            C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"></circle>' +
+        "</svg>" +
+        '<div class="num">' + si.final + "<small>" + esc(si.cat) + "</small></div>" +
+      "</div>" +
+    "</div>" +
+    (si.capped ? '<div class="capwarn">原始 ' + si.raw + " → 封顶 " + si.final + "｜" + esc(si.reason) + "</div>" : "") +
+    (si.missing ? '<div class="capwarn">存在缺证据维度，定级仅供参考</div>' : "") +
+    '<div class="dims5">' + dims + "</div>" +
+    '<div class="dimp-hint" id="dimHint">点击任一维度，查看得分点、扣分点与判定依据</div>' +
+    '<div id="dimp"></div>' +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>核心洞察</h2><span class="hd-note">什么被错误定价了</span></div>' +
+    '<p class="insight">' + s.insight + "</p>" +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>产业链位置与排序理由</h2><span class="hd-note">为什么是它，为什么排这里</span></div>' +
+    '<div class="duo">' +
+      '<div class="note"><h3>产业链位置</h3><p>' + esc(s.position) + "</p></div>" +
+      '<div class="note"><h3>排序理由</h3><p>' + esc(s.why) + "</p></div>" +
+    "</div>" +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>证据链</h2><span class="hd-note">' + (s.evidence || []).length + " 条 · 均带日期</span></div>" +
+    (ev || '<p class="insight" style="color:var(--ink-4)">[MISSING] 尚未取得可引用的一手材料。</p>') +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>主要风险</h2><span class="hd-note">' + (s.risks || []).length + " 条</span></div>" +
+    '<ul class="risks neg">' + risks + "</ul>" +
+    '<div class="note warn" style="margin-top:11px"><h3>失效条件</h3><p>' + esc(s.kill) + "</p></div>" +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>关键观察位</h2><span class="hd-note">估值锚与失效位 · 非交易指令</span></div>' +
+    '<div class="levels">' +
+      '<div class="lv p"><div class="ll">当前价</div><div class="lvv">' + esc(lv.price || "—") + '</div><div class="lh">' + esc(t.date) + " 收盘</div></div>" +
+      '<div class="lv f"><div class="ll">合理估值区间</div><div class="lvv">' + esc(lv.fair || "—") + '</div><div class="lh">可比口径下沿—上沿</div></div>' +
+      '<div class="lv a"><div class="ll">加码观察位</div><div class="lvv">' + esc(lv.add || "—") + '</div><div class="lh">论点不变时的更好赔率</div></div>' +
+      '<div class="lv x"><div class="ll">论点失效位</div><div class="lvv">' + esc(lv.fail || "—") + '</div><div class="lh">跌破即重新评估</div></div>' +
+    "</div>" +
+    '<div class="fin-foot" style="margin-top:10px">行情来源 · 交易所收盘价（' + esc(REPORT.meta.priceDate || t.date) +
+      '）；估值区间为可比公司法与历史分位交叉结果，非精确目标价。</div>' +
+  "</section>" +
+
+  '<section class="glass card">' +
+    '<div class="card-hd"><h2>数据缺口 / 下一验证</h2><span class="hd-note">未查到即标 MISSING</span></div>' +
+    '<ul class="risks">' + (gaps || "<li>暂无登记缺口</li>") + "</ul>" +
+  "</section>";
+
+  $("#detail").querySelectorAll(".dim5").forEach((el) => {
+    const key = el.dataset.dim;
+    const act = () => { state.dim = state.dim === key ? null : key; syncDim(); };
+    el.addEventListener("click", act);
+    el.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); act(); }
+    });
+  });
+  syncDim();
+}
+
+/* ---------- 维度得分明细 ---------- */
+function dimPanelHTML(k, s){
+  const note = (SCORE_NOTES[s.code] || {})[k];
+  const w = REPORT.rubric[k], v = Number(s.scores[k]) || 0;
+  if (!note) {
+    return '<div class="dimp"><div class="dimp-empty">该维度尚未登记得分明细（' +
+      esc(k) + " " + v + "/" + w + "）。请在 SCORE_NOTES 中按权重补充得分点。</div></div>";
+  }
+  const li = (a) => (a || []).map((x) => "<li>" + esc(x) + "</li>").join("");
+  return '<div class="dimp">' +
+    '<div class="dimp-hd"><h3>' + esc(k) + "</h3>" +
+      (note.band ? '<span class="band">' + esc(note.band) + "</span>" : "") +
+      '<span class="pts">' + v + "<small>/" + w + "</small></span>" +
+    "</div>" +
+    '<div class="pm">' +
+      '<div class="col p"><h4>计入得分</h4><ul>' + li(note.plus) + "</ul></div>" +
+      '<div class="col m"><h4>未计满</h4><ul>' + li(note.minus) + "</ul></div>" +
+    "</div>" +
+    (note.basis ? '<div class="basis">判定依据 · ' + esc(note.basis) + "</div>" : "") +
+    (note.verd ? '<div class="verd">' + esc(note.verd) + "</div>" : "") +
+  "</div>";
+}
+function syncDim(){
+  const s = stock();
+  document.querySelectorAll("#detail .dim5").forEach((el) => {
+    const on = el.dataset.dim === state.dim;
+    el.classList.toggle("on", on);
+    el.setAttribute("aria-expanded", String(on));
+  });
+  const box = $("#dimp");
+  if (box) box.innerHTML = state.dim ? dimPanelHTML(state.dim, s) : "";
+  const hint = $("#dimHint");
+  if (hint) hint.textContent = state.dim
+    ? "再次点击同一个维度可收起 · 得分点按评分规则逐条对照"
+    : "点击任一维度，查看得分点、扣分点与判定依据";
+}
+
+/* ---------- 财务口径 ---------- */
+function cls(v){
+  const s = String(v || "—");
+  if (s.charAt(0) === "-") return "down";
+  if (s.charAt(0) === "+") return "up";
+  return "mut";
+}
+function pct(v, withSign){
+  const s = String(v == null ? "—" : v);
+  if (s === "—" || s === "") return "—";
+  return withSign ? s + "%" : s;
+}
+function renderFin(){
+  const t = theme();
+  const list = ranked();
+  const m = REPORT.meta;
+  $("#finNote").textContent = "报告期 " + (m.finPeriod || "—") + " · 收盘 " + (m.priceDate || t.date);
+
+  const head = ["标的", "层级", "综合分", "收盘价", "市值(亿)", "PE(TTM)",
+                "营收 YoY", "净利 YoY", "毛利率", "毛利率变动", "现金流/净利"];
+  const rows = list.map((s) => {
+    const si = scoreInfo(s);
+    const f = FIN[s.code] || {};
+    return "<tr>" +
+      '<td><span class="fn">' + esc(s.name) + '</span><span class="fc">' + esc(s.code) + "</span></td>" +
+      '<td><span class="fl">' + esc(s.layer) + "</span></td>" +
+      '<td><b class="score">' + (si.missing ? "—" : si.final) + "</b></td>" +
+      "<td>" + esc(f.px || "—") + "</td>" +
+      "<td>" + esc(f.mcap || "—") + "</td>" +
+      "<td>" + esc(f.pe || "—") + "</td>" +
+      '<td class="' + cls(f.rev) + '">' + esc(pct(f.rev, true)) + "</td>" +
+      '<td class="' + cls(f.np) + '">' + esc(pct(f.np, true)) + "</td>" +
+      "<td>" + esc(f.gm ? f.gm + "%" : "—") + "</td>" +
+      '<td class="' + cls(f.gmd) + '">' + esc(f.gmd ? f.gmd + "pct" : "—") + "</td>" +
+      "<td>" + esc(f.ocf || "—") + "</td>" +
+    "</tr>";
+  }).join("");
+
+  $("#fintable").innerHTML =
+    "<table class=\"fintable\"><thead><tr>" +
+    head.map((h) => "<th>" + esc(h) + "</th>").join("") +
+    "</tr></thead><tbody>" + rows + "</tbody></table>";
+
+  $("#finFoot").textContent =
+    "口径：市值 = 总股本 × 收盘价；PE 为 TTM 归母净利润口径（亏损或无非经常性可比数据时记 —）；" +
+    "毛利率为整体口径，变动为较上年同期 pct；现金流/净利 = 经营活动现金流净额 ÷ 归母净利润。" +
+    (m.finNote ? "个别口径：" + m.finNote : "") +
+    "来源：巨潮资讯 / 上交所 / 深交所定期报告，交易所收盘行情（" + (m.priceDate || t.date) + "）。缺数据以 — 表示，不代为估算。";
+}
+
+/* ---------- copy ---------- */
+let toastTimer = null;
+function toast(msg){
+  const el = $("#toast");
+  el.textContent = msg;
+  el.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("on"), 2600);
+}
+async function copyConclusion(){
+  const t = theme(), list = ranked(), best = list[0], si = scoreInfo(best);
+  const layers = t.layers.slice(0, 3).map((l, i) => (i + 1) + "." + l.nm + "（卡点 " + l.s + "/10，" + l.v + "）").join("；");
+  const text = "【" + t.query + "】" + t.date + "\n层级排序：" + layers +
+    "\n首选标的：" + best.name + "（" + best.code + "）综合 " + si.final + "/100 " + si.cat +
+    "\n结论：" + t.verdict +
+    "\n最大未解问题：" + ((best.gaps || [])[0] || "无") +
+    "\n本报告仅供研究参考，不构成个人投资建议。";
+  try { await navigator.clipboard.writeText(text); toast("结论已复制"); }
+  catch (e) {
+    const ta = document.createElement("textarea");
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast("结论已复制"); }
+    catch (e2) { toast("复制失败，请手动选择文本"); }
+    document.body.removeChild(ta);
+  }
+}
+
+/* ---------- boot ---------- */
+function syncFinScroll(){
+  const card = $("#finCard"), wrap = card && card.querySelector(".finwrap");
+  if (!card || !wrap) return;
+  card.classList.toggle("can-scroll", wrap.scrollWidth > wrap.clientWidth + 2);
+}
+function renderAll(){ renderHead(); renderLayers(); renderFin(); renderList(); renderDetail(); syncFinScroll(); }
+function boot(){
+  state.themeId = REPORT.themes[0].id;
+  state.stockCode = ranked()[0].code;
+  state.dim = null;
+  if (REPORT.meta.demo) {
+    $("#footNote").textContent = "示例数据结构 · 数值仅用于演示排版，非真实行情 ｜ 本报告仅供研究参考，不构成个人投资建议";
+  }
+  renderAll();
+  let rz = null;
+  window.addEventListener("resize", function () {
+    clearTimeout(rz); rz = setTimeout(syncFinScroll, 120);
+  });
+}
+boot();
+</script>
+</body>
+</html>
