@@ -10,7 +10,7 @@
 **一行装好（macOS / Linux）**
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+curl -fsSL https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.sh | bash
 ```
 
 Windows 用[快速开始里的那条](#快速开始)。装完重启客户端即可。
@@ -140,25 +140,27 @@ python serenity-skill/scripts/validate_skill.py serenity-skill
 **macOS / Linux** —— 复制这一行回车：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+curl -fsSL https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.sh | bash
 ```
 
 **Windows**（PowerShell，复制这一整段回车）：
 
 ```powershell
-irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1"
+$ProgressPreference='SilentlyContinue'; irm https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1"
 ```
 
 脚本会自动从 GitHub 拉取仓库、把两个技能装到 `~/.workbuddy/skills/`，跑完**直接把可复制的提示词打在屏幕上**，重启客户端就能用。
+
+> **为什么用 jsDelivr 而不是 `raw.githubusercontent.com`**：国内直连 raw 域名经常被重置，jsDelivr 走 CDN 稳定得多。如果你能直连 GitHub，把域名换回 `raw.githubusercontent.com/dzp181/chain-score-skill/main/...` 也一样。
 
 想装到别处或只装一个，在后面加参数：
 
 ```bash
 # macOS / Linux：只装交付层
-curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash -s -- --only chain-score
+curl -fsSL https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.sh | bash -s -- --only chain-score
 
-# Windows：只装交付层，并复制提示词到剪贴板
-irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1" -Only chain-score -Copy
+# Windows：只装交付层，并把提示词复制到剪贴板
+$ProgressPreference='SilentlyContinue'; irm https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1" -Only chain-score -Copy
 ```
 
 ### 方式二：git clone（想跟着更新走这条路）

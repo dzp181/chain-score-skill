@@ -7,7 +7,9 @@
 #
 # 两种跑法，效果一样:
 #   远程（推荐，不用先 clone）:
-#     curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+#     curl -fsSL https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.sh | bash
+#     （国内 raw.githubusercontent.com 常被墙，所以用 jsDelivr；能直连的话也可换成
+#       https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh）
 #   本地（已 clone 到本机）:
 #     bash install.sh
 #

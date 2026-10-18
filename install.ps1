@@ -6,8 +6,9 @@
 #
 # 两种跑法，效果一样:
 #   远程（推荐，不用先 clone）:
-#     irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"
+#     $ProgressPreference='SilentlyContinue'; irm https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.ps1 -OutFile "$env:TEMP\cs.ps1"
 #     powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1"
+#     （国内 raw.githubusercontent.com 常被墙，所以用 jsDelivr）
 #   本地（已 clone 到本机）:
 #     powershell -ExecutionPolicy Bypass -File .\install.ps1
 #
