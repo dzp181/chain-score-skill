@@ -5,18 +5,28 @@
 #   chain-score     交付层：排层级 + 五维评分 + 出报告
 #   serenity-skill  方法论层：完整产业链研究流程
 #
-# 用法:
-#   bash install.sh                        # 装到 ~/.workbuddy/skills
+# 两种跑法，效果一样:
+#   远程（推荐，不用先 clone）:
+#     curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+#   本地（已 clone 到本机）:
+#     bash install.sh
+#
+# 参数:
 #   bash install.sh ~/.claude/skills       # 装到 Claude Code
 #   bash install.sh --only chain-score     # 只装一个
-#   bash install.sh --copy                 # 装完并把提示词复制到剪贴板
+#   bash install.sh --copy                 # 装完把提示词复制到剪贴板
+#   curl ... | bash -s -- --only chain-score   # 远程模式带参数
 
 set -euo pipefail
 
-SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="dzp181/chain-score-skill"
+BRANCH="main"
+
+SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-.}")" 2>/dev/null && pwd || pwd)"
 TARGET="$HOME/.workbuddy/skills"
 ONLY=""
 DO_COPY=0
+CLEANUP=""
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -35,6 +45,33 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# ---------- 远程模式：本地没有仓库文件时自动拉取 ----------
+if [ ! -f "$SRC_DIR/skills/chain-score/SKILL.md" ]; then
+  echo "· 本地没找到技能文件，从 GitHub 拉取 $REPO ..."
+  # 用 pwd 归一化成 POSIX 路径：Git Bash 下 mktemp 会给出混合路径，后续 rm 会失败
+  CLEANUP="$(cd "$(mktemp -d)" && pwd)"
+  mkdir -p "$CLEANUP"
+  if command -v git >/dev/null 2>&1; then
+    git clone -q --depth 1 "https://github.com/$REPO.git" "$CLEANUP/repo"
+    SRC_DIR="$CLEANUP/repo"
+  else
+    curl -fsSL "https://codeload.github.com/$REPO/zip/refs/heads/$BRANCH" -o "$CLEANUP/repo.zip"
+    ( cd "$CLEANUP" && unzip -q repo.zip )
+    SRC_DIR="$CLEANUP/chain-score-skill-$BRANCH"
+  fi
+  if [ ! -f "$SRC_DIR/skills/chain-score/SKILL.md" ]; then
+    echo "失败: 拉取后仍找不到 SKILL.md，请检查网络或改用 git clone。"
+    exit 1
+  fi
+fi
+
+cleanup() {
+  if [ -n "$CLEANUP" ] && [ -d "$CLEANUP" ]; then
+    rm -rf "$CLEANUP" 2>/dev/null || true
+  fi
+}
+trap cleanup EXIT
+
 SKILLS=("chain-score" "serenity-skill")
 if [ -n "$ONLY" ]; then
   SKILLS=("$ONLY")
@@ -46,7 +83,7 @@ for s in "${SKILLS[@]}"; do
   SRC="$SRC_DIR/skills/$s"
   if [ ! -f "$SRC/SKILL.md" ]; then
     echo "失败: 找不到 $SRC/SKILL.md"
-    echo "请在仓库根目录运行本脚本。"
+    echo "可用技能: chain-score / serenity-skill"
     exit 1
   fi
 

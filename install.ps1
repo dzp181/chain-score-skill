@@ -4,11 +4,17 @@
 #   chain-score     交付层：排层级 + 五维评分 + 出报告
 #   serenity-skill  方法论层：完整产业链研究流程
 #
-# 用法:
-#   powershell -ExecutionPolicy Bypass -File install.ps1
-#   powershell -ExecutionPolicy Bypass -File install.ps1 -Target "$env:USERPROFILE\.claude\skills"
-#   powershell -ExecutionPolicy Bypass -File install.ps1 -Only chain-score
-#   powershell -ExecutionPolicy Bypass -File install.ps1 -Copy
+# 两种跑法，效果一样:
+#   远程（推荐，不用先 clone）:
+#     irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"
+#     powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1"
+#   本地（已 clone 到本机）:
+#     powershell -ExecutionPolicy Bypass -File .\install.ps1
+#
+# 参数:
+#   -Target "$env:USERPROFILE\.claude\skills"   # 装到 Claude Code
+#   -Only chain-score                          # 只装一个
+#   -Copy                                      # 装完把提示词复制到剪贴板
 
 param(
     [string]$Target = "$env:USERPROFILE\.workbuddy\skills",
@@ -17,8 +23,28 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
+# 关掉 Invoke-WebRequest / Expand-Archive 的进度条，否则会把终端刷满
+$ProgressPreference = "SilentlyContinue"
 
+$RepoUrl = "https://codeload.github.com/dzp181/chain-score-skill/zip/refs/heads/main"
 $Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$RemoteTmp = ""
+
+# ---------- 远程模式：本地没有仓库文件时自动下载 ----------
+if (-not (Test-Path (Join-Path $Root "skills\chain-score\SKILL.md"))) {
+    Write-Output "· 本地没找到技能文件，从 GitHub 下载 ..."
+    $RemoteTmp = Join-Path $env:TEMP ("chain-score-skill-" + [System.IO.Path]::GetRandomFileName().Replace(".", ""))
+    New-Item -ItemType Directory -Path $RemoteTmp -Force | Out-Null
+    $Zip = Join-Path $RemoteTmp "repo.zip"
+    Invoke-WebRequest -Uri $RepoUrl -OutFile $Zip -UseBasicParsing
+    Expand-Archive -Path $Zip -DestinationPath $RemoteTmp -Force
+    $Root = Join-Path $RemoteTmp "chain-score-skill-main"
+    if (-not (Test-Path (Join-Path $Root "skills\chain-score\SKILL.md"))) {
+        Write-Output "失败: 下载后仍找不到 SKILL.md，请检查网络。"
+        exit 1
+    }
+}
+
 $Skills = @("chain-score", "serenity-skill")
 if ($Only -ne "") {
     $Skills = @($Only)
@@ -32,7 +58,7 @@ foreach ($s in $Skills) {
     $Src = Join-Path $Root "skills\$s"
     if (-not (Test-Path (Join-Path $Src "SKILL.md"))) {
         Write-Output "失败: 找不到 $Src\SKILL.md"
-        Write-Output "请在仓库根目录运行本脚本。"
+        Write-Output "可用技能: chain-score / serenity-skill"
         exit 1
     }
 
@@ -109,6 +135,10 @@ if ($Copy) {
     } catch {
         Write-Output "复制到剪贴板失败，请手动复制上面的提示词。"
     }
+}
+
+if ($RemoteTmp -ne "" -and (Test-Path $RemoteTmp)) {
+    Remove-Item $RemoteTmp -Recurse -Force -ErrorAction SilentlyContinue
 }
 
 Write-Output ""

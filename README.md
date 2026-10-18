@@ -7,6 +7,14 @@
 
 装好之后，把 **[PROMPTS.md](PROMPTS.md)** 里的一段**整段复制**进对话框就能跑，不用记参数。
 
+**一行装好（macOS / Linux）**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+```
+
+Windows 用[快速开始里的那条](#快速开始)。装完重启客户端即可。
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skill](https://img.shields.io/badge/type-Agent%20Skill-7c5cff.svg)](#快速开始)
 [![Single File](https://img.shields.io/badge/output-single%20HTML-2ea44f.svg)](#输出长什么样)
@@ -46,6 +54,73 @@
 
 ---
 
+## serenity-skill 指引（方法论层）
+
+`serenity-skill` 是上游的独立开源项目，本仓库里这份是原样放进去的（未删改），用来补足「从热点到结论」的完整研究流程。
+
+- **上游仓库**：<https://github.com/muxuuu/serenity-skill>
+- **许可**：MIT（Copyright 2026 muxu），见 [skills/serenity-skill/LICENSE](skills/serenity-skill/LICENSE)
+- **方法论来源**：Serenity / [@aleabitoreddit](https://x.com/aleabitoreddit) 的公开研究路径
+- **定位**：这是独立实现的公开方法论项目，不是官方产品
+
+### 单独安装（只想要方法论层，或想拿最新版）
+
+```bash
+git clone --depth 1 https://github.com/muxuuu/serenity-skill.git ~/.workbuddy/skills/serenity-skill
+# Claude Code 换成 ~/.claude/skills/serenity-skill
+```
+
+上游更新了想拿新版，把它换成上游的 `git pull` 即可；本仓库里的这份不会自动同步。
+
+### 里面有什么
+
+| 目录 | 内容 |
+|---|---|
+| `SKILL.md` | 入口：请求路由（主题扫描 / 挑战公司 / 候选对比 / 学习模式）+ 研究流程 |
+| `references/` | 10 篇：研究流程、证据阶梯、市场来源手册、**对话协议**、输出风格、风险合规、公开画像评估、评分规则、报告规范 |
+| `examples/` | 3 个示例对话，看它怎么一步步收敛 |
+| `assets/` | 同一套报告模板 + Prompt 包 + 论点模板 |
+| `scripts/validate_skill.py` | 技能结构校验脚本 |
+
+### 两种典型用法
+
+**主题扫描**（从零开始，先不给股票）
+
+```
+用 serenity-skill 帮我研究 [主题]。
+先拆产业链，判断哪些环节更接近真实供需瓶颈，先不要给股票。
+证据不足就说不足，不要凑数。
+```
+
+**挑战一家公司**（把标签拆成可验证的主张）
+
+```
+用 serenity-skill 挑战 [公司名/代码]。
+把它「XX 核心供应商」这个标签拆成具体主张，逐条对着公告和财报验证。
+```
+
+它默认一次只问一个聚焦问题、慢慢收敛——这不是效率低，而是防止一上来就给你一个看起来很完整的错误答案。
+
+### 和 chain-score 接力
+
+两个技能可以串起来用：
+
+1. 先用 `serenity-skill` 深挖，得到 3–5 家候选和证据链
+2. 再发一句：`用 chain-score 给上面这几家打分，出一份 HTML 报告`
+3. chain-score 复用同一套模板与评分规则，直接出可转发的报告
+
+### 校验结构（可选，需要 Python 3）
+
+```bash
+cd ~/.workbuddy/skills
+python serenity-skill/scripts/validate_skill.py chain-score
+python serenity-skill/scripts/validate_skill.py serenity-skill
+```
+
+两条都返回 `OK: <名称> (N description chars)` 就说明结构没问题。校验脚本只放在 serenity-skill 里，校验 chain-score 时指向它即可。
+
+---
+
 ## 快速开始
 
 ### 第 0 步：确认环境
@@ -60,7 +135,52 @@
 > Windows 下 `~` 指 `C:\Users\<你的用户名>`，macOS 下指 `/Users/<你的用户名>`。
 > 只想给单个项目用，就放到项目根目录的 `.workbuddy/skills/`。
 
-### 方式一：下载 ZIP（不用 git，最省事）
+### 方式一：一行命令（推荐，不用 git、不用下载）
+
+**macOS / Linux** —— 复制这一行回车：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash
+```
+
+**Windows**（PowerShell，复制这一整段回车）：
+
+```powershell
+irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1"
+```
+
+脚本会自动从 GitHub 拉取仓库、把两个技能装到 `~/.workbuddy/skills/`，跑完**直接把可复制的提示词打在屏幕上**，重启客户端就能用。
+
+想装到别处或只装一个，在后面加参数：
+
+```bash
+# macOS / Linux：只装交付层
+curl -fsSL https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.sh | bash -s -- --only chain-score
+
+# Windows：只装交付层，并复制提示词到剪贴板
+irm https://raw.githubusercontent.com/dzp181/chain-score-skill/main/install.ps1 -OutFile "$env:TEMP\cs.ps1"; powershell -ExecutionPolicy Bypass -File "$env:TEMP\cs.ps1" -Only chain-score -Copy
+```
+
+### 方式二：git clone（想跟着更新走这条路）
+
+```bash
+git clone https://github.com/dzp181/chain-score-skill.git /tmp/cs && bash /tmp/cs/install.sh
+```
+
+```powershell
+git clone https://github.com/dzp181/chain-score-skill.git $env:TEMP\cs
+powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1
+```
+
+装到 Claude Code 或自定义目录：
+
+```bash
+bash /tmp/cs/install.sh ~/.claude/skills     # 换目录
+bash /tmp/cs/install.sh --only chain-score   # 只装交付层
+bash /tmp/cs/install.sh --copy               # 装完把提示词放进剪贴板
+```
+
+### 方式三：完全手动（下载 ZIP）
 
 1. 点右上角 **Code → Download ZIP**
 2. 解压，把 `skills/` 下的**两个文件夹**（`chain-score` 和 `serenity-skill`）一起拷到上表的技能目录
@@ -81,33 +201,7 @@
 
 只想要轻量版，就只拷 `chain-score`，它自包含、不依赖另一个。
 
-### 方式二：一行命令（macOS / Linux）
-
-```bash
-git clone https://github.com/dzp181/chain-score-skill.git /tmp/cs \
-  && bash /tmp/cs/install.sh
-```
-
-指定其他客户端：
-
-```bash
-bash install.sh ~/.claude/skills     # 装到 Claude Code
-bash install.sh --only chain-score   # 只装交付层，不要方法论层
-bash install.sh --copy               # 装完直接把提示词复制到剪贴板
-```
-
-### 方式三：Windows PowerShell
-
-```powershell
-git clone https://github.com/dzp181/chain-score-skill.git $env:TEMP\cs
-powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1
-powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Only chain-score
-powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Copy
-```
-
-脚本默认装两个技能，遇到同名目录会先备份成 `<技能名>.bak.<时间戳>` 再覆盖，不会静默删除你的改动。
-
-**装完脚本会直接打印一段可复制的提示词**（`--copy` / `-Copy` 会自动放进剪贴板），不用回来看文档就能开跑。完整的提示词库见 [PROMPTS.md](PROMPTS.md)。
+> 三种方式结果一样：默认装两个技能，遇到同名目录会先备份成 `<技能名>.bak.<时间戳>` 再覆盖，不会静默删除你已有的改动。`--copy` / `-Copy` 会把提示词直接放进剪贴板。完整提示词库见 [PROMPTS.md](PROMPTS.md)。
 
 ### 最后一步：验证装好了
 
@@ -336,14 +430,15 @@ const FIN = { "688690.SH": { px, mcap, pe, rev, np, gm, gmd, ocf } };
 版面是中文的。改 `SKILL.md` 里的输出语言要求即可，模板文案需要自己替换。
 
 **和 serenity-skill 什么关系？**
-方法论同源，chain-score 是它的交付层拆分：只做「排层级 + 评分 + 出报告」，更轻、更快、可复用。serenity-skill 保留完整的研究流程（热点扫描、需求定位、追问协议、公开画像评估），适合从零做深度研究。两个技能共用同一套模板与评分规则，可以只装一个，也可以都装。详见[两个技能怎么选](#两个技能怎么选)。
+方法论同源，chain-score 是它的交付层拆分：只做「排层级 + 评分 + 出报告」，更轻、更快、可复用。serenity-skill 保留完整的研究流程（热点扫描、需求定位、追问协议、公开画像评估），适合从零做深度研究，上游在 [muxuuu/serenity-skill](https://github.com/muxuuu/serenity-skill)。两个技能共用同一套模板与评分规则，可以只装一个，也可以都装。详见[两个技能怎么选](#两个技能怎么选)与[serenity-skill 指引](#serenity-skill-指引方法论层)。
 
 ---
 
 ## 方法论来源
 
 - 产业链瓶颈研究的公开方法论脉络来自 **Serenity / [@aleabitoreddit](https://x.com/aleabitoreddit)**：从热点出发拆链条，找难以扩产、难以替代的环节，再回到公司用公告与财报验证。
-- 五维评分框架、封顶规则、得分明细要求，是在此基础上为本技能固化的可执行口径，细则见 [references/scoring-rubric.md](skills/chain-score/references/scoring-rubric.md)。
+- 方法论层的实现来自上游开源项目 **[muxuuu/serenity-skill](https://github.com/muxuuu/serenity-skill)**（MIT），本仓库 `skills/serenity-skill/` 为原样收录。
+- 五维评分框架、封顶规则、得分明细要求，是在此基础上固化的可执行口径，细则见 [references/scoring-rubric.md](skills/chain-score/references/scoring-rubric.md)。
 - 技能的目录结构与校验脚本沿用 Agent Skill 约定。
 
 ---
