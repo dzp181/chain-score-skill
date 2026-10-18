@@ -125,7 +125,9 @@
 
 拿不准就先装 `chain-score`，它更轻更快。
 
-### serenity-skill 指引
+---
+
+## serenity-skill 指引
 
 `serenity-skill` 是上游独立开源项目，本仓库原样收录（未删改）：
 
