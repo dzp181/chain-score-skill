@@ -11,17 +11,21 @@
 
 ---
 
-## 安装：复制这句话给 AI
+## 安装
+
+**WorkBuddy**：下载 [chain-score.zip](dist/chain-score.zip)，点「导入技能」，把 zip 拖进去即可。包内根目录就是 `SKILL.md`，YAML 里有技能名称和描述，符合导入要求。
+
+想连方法论层一起装：[serenity-skill.zip](dist/serenity-skill.zip)。
+
+**其他客户端 / 想让 AI 代劳**：把这句发给 AI
 
 ```
 根据 https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/install.md 安装 chain-score 技能
 ```
 
-把这句话发给你在用的 AI（WorkBuddy / Claude Code / Cursor 都行）。它会自己判断系统、找到技能目录、备份旧版本、复制文件、逐条自检，最后告诉你重启客户端。
+它会自己判断系统、找到技能目录、备份旧版本、复制文件、逐条自检，最后告诉你重启客户端。中途卡住，就让它直接打开 [install.md](install.md) 按步骤走。
 
-重启后发 `@skill:chain-score CPO 光模块` 验证。中途卡住，就让它直接打开 [install.md](install.md) 按步骤走。
-
-支持 WorkBuddy（`~/.workbuddy/skills/`）与 Claude Code（`~/.claude/skills/`）。
+装完**重启客户端**（技能是启动时扫描的），发 `@skill:chain-score CPO 光模块` 验证。支持 WorkBuddy（`~/.workbuddy/skills/`）与 Claude Code（`~/.claude/skills/`）。
 
 ---
 
@@ -133,7 +137,7 @@
 
 - 上游：<https://github.com/muxuuu/serenity-skill> ｜ 许可 MIT（Copyright 2026 muxu）
 - 单独安装：`git clone --depth 1 https://github.com/muxuuu/serenity-skill.git ~/.workbuddy/skills/serenity-skill`
-- 内容：`SKILL.md` 入口 + 10 篇 references（研究流程 / 证据阶梯 / 对话协议 / 风险合规 / 公开画像评估等）+ 3 个示例对话 + 结构校验脚本
+- 内容：`SKILL.md` 入口 + 9 篇 references（研究流程 / 证据阶梯 / 对话协议 / 风险合规 / 公开画像评估等）+ 3 个示例对话 + 结构校验脚本
 
 两种典型用法：
 
@@ -166,8 +170,9 @@ python serenity-skill/scripts/validate_skill.py serenity-skill
 
 ```
 .
-├── install.md                  # 给 AI 读的安装说明（就是上面那句提示词指向的文件）
+├── install.md                  # 给 AI 读的安装说明（上面那句提示词指向的文件）
 ├── PROMPTS.md                  # 提示词库：三种客户端写法 + 常用场景
+├── dist/                       # 可直接导入的 zip（SKILL.md 在包根目录）
 ├── docs/                       # 3 张预览图
 ├── examples/                   # 2 份真实报告
 │
@@ -178,6 +183,7 @@ python serenity-skill/scripts/validate_skill.py serenity-skill
 │   │   └── references/         # 评分规则 / 报告规范 / 证据阶梯 / 来源手册 / 研究步骤
 │   └── serenity-skill/         # 方法论层（上游原样收录，含 LICENSE）
 │
+├── build-zips.py               # 改完技能后重新打包：python build-zips.py
 └── install.sh  install.ps1     # 脚本版安装（等效，可选）
 ```
 
