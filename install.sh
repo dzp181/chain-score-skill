@@ -1,35 +1,64 @@
 #!/usr/bin/env bash
-# chain-score 安装脚本 (macOS / Linux)
+# chain-score 技能包安装脚本 (macOS / Linux)
+#
+# 默认安装两个技能:
+#   chain-score     交付层：排层级 + 五维评分 + 出报告
+#   serenity-skill  方法论层：完整产业链研究流程
+#
 # 用法:
-#   bash install.sh                      # 装到 ~/.workbuddy/skills
-#   bash install.sh ~/.claude/skills     # 装到 Claude Code
-#   bash install.sh /path/to/skills      # 自定义目录
+#   bash install.sh                        # 装到 ~/.workbuddy/skills
+#   bash install.sh ~/.claude/skills       # 装到 Claude Code
+#   bash install.sh --only chain-score     # 只装一个
 
 set -euo pipefail
 
 SRC_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_SRC="$SRC_DIR/skills/chain-score"
-TARGET="${1:-$HOME/.workbuddy/skills}"
+TARGET="$HOME/.workbuddy/skills"
+ONLY=""
 
-if [ ! -f "$SKILL_SRC/SKILL.md" ]; then
-  echo "✗ 找不到 $SKILL_SRC/SKILL.md"
-  echo "  请在仓库根目录运行本脚本。"
-  exit 1
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --only)
+      ONLY="${2:-}"
+      shift 2
+      ;;
+    *)
+      TARGET="$1"
+      shift
+      ;;
+  esac
+done
+
+SKILLS=("chain-score" "serenity-skill")
+if [ -n "$ONLY" ]; then
+  SKILLS=("$ONLY")
 fi
 
 mkdir -p "$TARGET"
 
-if [ -d "$TARGET/chain-score" ]; then
-  BAK="$TARGET/chain-score.bak.$(date +%Y%m%d%H%M%S)"
-  mv "$TARGET/chain-score" "$BAK"
-  echo "· 已有版本已备份到 $BAK"
-fi
+for s in "${SKILLS[@]}"; do
+  SRC="$SRC_DIR/skills/$s"
+  if [ ! -f "$SRC/SKILL.md" ]; then
+    echo "失败: 找不到 $SRC/SKILL.md"
+    echo "请在仓库根目录运行本脚本。"
+    exit 1
+  fi
 
-cp -R "$SKILL_SRC" "$TARGET/chain-score"
+  if [ -d "$TARGET/$s" ]; then
+    BAK="$TARGET/$s.bak.$(date +%Y%m%d%H%M%S)"
+    mv "$TARGET/$s" "$BAK"
+    echo "· $s 旧版本已备份到 $BAK"
+  fi
 
-echo "✓ 已安装到 $TARGET/chain-score"
+  cp -R "$SRC" "$TARGET/$s"
+  echo "✓ $s → $TARGET/$s"
+done
+
 echo ""
 echo "文件清单:"
-find "$TARGET/chain-score" -type f | sed "s|$TARGET/chain-score/|  |"
+for s in "${SKILLS[@]}"; do
+  find "$TARGET/$s" -type f | sed "s|$TARGET/$s/|  $s/|"
+done
+
 echo ""
 echo "下一步: 重启客户端，然后发一句「用 chain-score 研究 HBM」验证。"

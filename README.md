@@ -3,6 +3,8 @@
 > 输入一个赛道、产品、热点或事件，输出一份**能点回原文**的单文件 HTML 研究报告：
 > **先排产业链层级（哪一层最卡），再给 3–5 只优先研究标的，五维打分排名。**
 
+仓库含两个技能：**chain-score**（交付层：排层级 + 五维评分 + 出报告）与 **serenity-skill**（方法论层：完整的产业链深度研究流程）。两者共用同一套评分规则与报告模板，可以只装一个。
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skill](https://img.shields.io/badge/type-Agent%20Skill-7c5cff.svg)](#快速开始)
 [![Single File](https://img.shields.io/badge/output-single%20HTML-2ea44f.svg)](#输出长什么样)
@@ -27,6 +29,21 @@
 
 ---
 
+## 两个技能，怎么选
+
+| | `chain-score` | `serenity-skill` |
+|---|---|---|
+| 定位 | 交付层：一进一出，直接出报告 | 方法论层：完整研究流程与对话协议 |
+| 适合 | 已经知道要看哪条链，要一份能转发的评分报告 | 从零开始做主题研究，需要追问、挑战、逐步收敛 |
+| 干的事 | 拆层级 → 选标的 → 五维打分 → 填模板交付 | 热点扫描 → 需求定位 → 卡点拆解 → 公司验证 → 证据分级 |
+| 一次要多久 | 短（一次对话出结果） | 长（可分多轮推进） |
+| 输出 | 单文件 HTML 评分报告 | 研究报告 + 判断依据 |
+| 怎么叫 | `@skill:chain-score HBM` | `@skill:serenity-skill 帮我研究 HBM` |
+
+两个技能共用同一套模板（`assets/report-template.html`）与同一套五维评分规则（`references/scoring-rubric.md`），所以排版和分数口径完全一致。**拿不准就先装 chain-score**，它更轻、更快；需要深挖时再上 serenity-skill。
+
+---
+
 ## 快速开始
 
 ### 第 0 步：确认环境
@@ -44,17 +61,23 @@
 ### 方式一：下载 ZIP（不用 git，最省事）
 
 1. 点右上角 **Code → Download ZIP**
-2. 解压，把 `skills/chain-score` 整个文件夹拷到上表的技能目录
+2. 解压，把 `skills/` 下的**两个文件夹**（`chain-score` 和 `serenity-skill`）一起拷到上表的技能目录
 3. 重启客户端
 
 最终结构必须是：
 
 ```
-<技能目录>/chain-score/
-├── SKILL.md
-├── assets/report-template.html
-└── references/*.md
+<技能目录>/
+├── chain-score/
+│   ├── SKILL.md
+│   ├── assets/report-template.html
+│   └── references/*.md
+└── serenity-skill/
+    ├── SKILL.md
+    ├── assets/  references/  examples/  scripts/
 ```
+
+只想要轻量版，就只拷 `chain-score`，它自包含、不依赖另一个。
 
 ### 方式二：一行命令（macOS / Linux）
 
@@ -67,6 +90,7 @@ git clone https://github.com/dzp181/chain-score-skill.git /tmp/cs \
 
 ```bash
 bash install.sh ~/.claude/skills     # 装到 Claude Code
+bash install.sh --only chain-score   # 只装交付层，不要方法论层
 ```
 
 ### 方式三：Windows PowerShell
@@ -74,9 +98,10 @@ bash install.sh ~/.claude/skills     # 装到 Claude Code
 ```powershell
 git clone https://github.com/dzp181/chain-score-skill.git $env:TEMP\cs
 powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1
+powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Only chain-score
 ```
 
-脚本会把已有版本备份成 `chain-score.bak.<时间戳>` 再覆盖，不会静默删除你的改动。
+脚本默认装两个技能，遇到同名目录会先备份成 `<技能名>.bak.<时间戳>` 再覆盖，不会静默删除你的改动。
 
 ### 最后一步：验证装好了
 
@@ -204,17 +229,28 @@ powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1
 ## 目录结构
 
 ```
-chain-score/
-├── SKILL.md                        # 技能定义：5 步流程、评分纪律、交付规范
-├── assets/
-│   └── report-template.html        # 报告模板（数据与视图分离，70KB 单文件）
-└── references/
-    ├── scoring-rubric.md           # 五维分数带、封顶、反作弊条款
-    ├── html-report-spec.md         # 版面、数据模型、交互、自检清单
-    ├── evidence-ladder.md          # 证据强弱分级
-    ├── market-source-playbook.md   # 各市场去哪儿找原始文件
-    └── deep-research-workflow.md   # 研究步骤
+skills/
+├── chain-score/                    # 交付层：排层级 + 评分 + 出报告
+│   ├── SKILL.md                    # 5 步流程、评分纪律、交付规范
+│   ├── assets/
+│   │   └── report-template.html    # 报告模板（数据与视图分离，73KB 单文件）
+│   └── references/
+│       ├── scoring-rubric.md       # 五维分数带、封顶、反作弊条款
+│       ├── html-report-spec.md     # 版面、数据模型、交互、自检清单
+│       ├── evidence-ladder.md      # 证据强弱分级
+│       ├── market-source-playbook.md  # 各市场去哪儿找原始文件
+│       └── deep-research-workflow.md  # 研究步骤
+│
+└── serenity-skill/                 # 方法论层：完整研究流程与对话协议
+    ├── SKILL.md
+    ├── LICENSE                     # 上游 MIT 许可（Copyright 2026 muxu）
+    ├── assets/                     # 同一套报告模板 + Prompt 包 + 论点模板
+    ├── references/                 # 含对话协议、输出风格、风险合规、公开画像等
+    ├── examples/                   # 3 个方法论示例对话
+    └── scripts/validate_skill.py   # 技能结构校验脚本
 ```
+
+两个技能的 `assets/report-template.html` **必须保持一致**（`cmp -s` 校验）。改模板时两边都要同步，否则一份报告用新模板、一份用旧模板。
 
 ### 想改成自己的模板？
 
@@ -261,7 +297,7 @@ const FIN = { "688690.SH": { px, mcap, pe, rev, np, gm, gmd, ocf } };
 版面是中文的。改 `SKILL.md` 里的输出语言要求即可，模板文案需要自己替换。
 
 **和 serenity-skill 什么关系？**
-方法论同源，chain-score 是它的交付层拆分：只做「排层级 + 评分 + 出报告」，更轻、更快、可复用。两个技能共用同一套模板与评分规则。
+方法论同源，chain-score 是它的交付层拆分：只做「排层级 + 评分 + 出报告」，更轻、更快、可复用。serenity-skill 保留完整的研究流程（热点扫描、需求定位、追问协议、公开画像评估），适合从零做深度研究。两个技能共用同一套模板与评分规则，可以只装一个，也可以都装。详见[两个技能怎么选](#两个技能怎么选)。
 
 ---
 
@@ -275,6 +311,8 @@ const FIN = { "688690.SH": { px, mcap, pe, rev, np, gm, gmd, ocf } };
 
 ## License
 
-[MIT](LICENSE) · 可自由使用、修改、商用，保留版权声明即可。
+本仓库代码与文档以 [MIT](LICENSE) 授权，可自由使用、修改、商用，保留版权声明即可。
+
+其中 `skills/serenity-skill/` 来自上游项目，**保留其原始 MIT 许可与版权声明**（见 [skills/serenity-skill/LICENSE](skills/serenity-skill/LICENSE)，Copyright (c) 2026 muxu），未做删改。若上游有更新，以原项目为准。
 
 **免责声明**：本项目是研究辅助工具，输出为研究排序与证据整理，不构成任何证券投资建议。据此操作的盈亏由使用者自行承担。市场有风险，决策请独立判断。

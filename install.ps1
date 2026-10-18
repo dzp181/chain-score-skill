@@ -1,49 +1,61 @@
-﻿# chain-score 安装脚本 (Windows)
+﻿# chain-score 技能包安装脚本 (Windows)
+#
+# 默认安装两个技能:
+#   chain-score     交付层：排层级 + 五维评分 + 出报告
+#   serenity-skill  方法论层：完整产业链研究流程
+#
 # 用法:
 #   powershell -ExecutionPolicy Bypass -File install.ps1
 #   powershell -ExecutionPolicy Bypass -File install.ps1 -Target "$env:USERPROFILE\.claude\skills"
+#   powershell -ExecutionPolicy Bypass -File install.ps1 -Only chain-score
 
 param(
-    [string]$Target = "$env:USERPROFILE\.workbuddy\skills"
+    [string]$Target = "$env:USERPROFILE\.workbuddy\skills",
+    [string]$Only = ""
 )
 
 $ErrorActionPreference = "Stop"
 
-$Src = Join-Path (Split-Path -Parent $MyInvocation.MyCommand.Path) "skills\chain-score"
-
-if (-not (Test-Path (Join-Path $Src "SKILL.md"))) {
-    Write-Output "失败: 找不到 $Src\SKILL.md"
-    Write-Output "请在仓库根目录运行本脚本。"
-    exit 1
+$Root = Split-Path -Parent $MyInvocation.MyCommand.Path
+$Skills = @("chain-score", "serenity-skill")
+if ($Only -ne "") {
+    $Skills = @($Only)
 }
 
 if (-not (Test-Path $Target)) {
     New-Item -ItemType Directory -Path $Target -Force | Out-Null
 }
 
-$Dest = Join-Path $Target "chain-score"
+foreach ($s in $Skills) {
+    $Src = Join-Path $Root "skills\$s"
+    if (-not (Test-Path (Join-Path $Src "SKILL.md"))) {
+        Write-Output "失败: 找不到 $Src\SKILL.md"
+        Write-Output "请在仓库根目录运行本脚本。"
+        exit 1
+    }
 
-if (Test-Path $Dest) {
-    $Bak = "$Dest.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
-    Move-Item $Dest $Bak
-    Write-Output "已有版本已备份到 $Bak"
+    $Dest = Join-Path $Target $s
+    if (Test-Path $Dest) {
+        $Bak = "$Dest.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
+        Move-Item $Dest $Bak
+        Write-Output "· $s 旧版本已备份到 $Bak"
+    }
+
+    Copy-Item $Src $Dest -Recurse
+    Write-Output "✓ $s → $Dest"
 }
 
-Copy-Item $Src $Dest -Recurse
-
-$DestPath = (Resolve-Path $Dest).Path
-
-Write-Output ""
-Write-Output "安装完成: $DestPath"
 Write-Output ""
 Write-Output "文件清单:"
-
-Push-Location $DestPath
-$base = (Get-Location).Path.Length + 1
-Get-ChildItem -Recurse -File | ForEach-Object {
-    Write-Output ("  " + $_.FullName.Substring($base))
+foreach ($s in $Skills) {
+    $Dest = Join-Path $Target $s
+    Push-Location $Dest
+    $base = (Get-Location).Path.Length + 1
+    Get-ChildItem -Recurse -File | ForEach-Object {
+        Write-Output ("  $s/" + $_.FullName.Substring($base).Replace('\', '/'))
+    }
+    Pop-Location
 }
-Pop-Location
 
 Write-Output ""
 Write-Output "下一步: 重启客户端，然后发一句「用 chain-score 研究 HBM」验证。"
