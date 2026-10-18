@@ -13,9 +13,9 @@
 
 ## 安装
 
-**WorkBuddy**：下载 [chain-score.zip](dist/chain-score.zip)，点「导入技能」，把 zip 拖进去即可。包内根目录就是 `SKILL.md`，YAML 里有技能名称和描述，符合导入要求。
+**WorkBuddy**：下载 [chain-score.zip](dist/chain-score.zip)（[CDN 镜像](https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/dist/chain-score.zip)），点「导入技能」，把 zip 拖进去即可。包内根目录就是 `SKILL.md`，YAML 里有技能名称和描述，符合导入要求。
 
-想连方法论层一起装：[serenity-skill.zip](dist/serenity-skill.zip)。
+想连方法论层一起装：[serenity-skill.zip](dist/serenity-skill.zip)（[CDN](https://cdn.jsdelivr.net/gh/dzp181/chain-score-skill@main/dist/serenity-skill.zip)）。
 
 **其他客户端 / 想让 AI 代劳**：把这句发给 AI
 
