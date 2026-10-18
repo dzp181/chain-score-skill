@@ -5,6 +5,8 @@
 
 仓库含两个技能：**chain-score**（交付层：排层级 + 五维评分 + 出报告）与 **serenity-skill**（方法论层：完整的产业链深度研究流程）。两者共用同一套评分规则与报告模板，可以只装一个。
 
+装好之后，把 **[PROMPTS.md](PROMPTS.md)** 里的一段**整段复制**进对话框就能跑，不用记参数。
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Skill](https://img.shields.io/badge/type-Agent%20Skill-7c5cff.svg)](#快速开始)
 [![Single File](https://img.shields.io/badge/output-single%20HTML-2ea44f.svg)](#输出长什么样)
@@ -91,6 +93,7 @@ git clone https://github.com/dzp181/chain-score-skill.git /tmp/cs \
 ```bash
 bash install.sh ~/.claude/skills     # 装到 Claude Code
 bash install.sh --only chain-score   # 只装交付层，不要方法论层
+bash install.sh --copy               # 装完直接把提示词复制到剪贴板
 ```
 
 ### 方式三：Windows PowerShell
@@ -99,37 +102,65 @@ bash install.sh --only chain-score   # 只装交付层，不要方法论层
 git clone https://github.com/dzp181/chain-score-skill.git $env:TEMP\cs
 powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1
 powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Only chain-score
+powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Copy
 ```
 
 脚本默认装两个技能，遇到同名目录会先备份成 `<技能名>.bak.<时间戳>` 再覆盖，不会静默删除你的改动。
 
+**装完脚本会直接打印一段可复制的提示词**（`--copy` / `-Copy` 会自动放进剪贴板），不用回来看文档就能开跑。完整的提示词库见 [PROMPTS.md](PROMPTS.md)。
+
 ### 最后一步：验证装好了
 
-在新会话里发一句：
+重启客户端，然后把这段贴进去：
 
 ```
-用 chain-score 研究一下 HBM
+@skill:chain-score CPO 光模块
+请先排产业链层级（卡点强度 0-10，先定层级再选公司），再给 3-5 只优先研究标的，
+按五维评分从高到低排序：卡脖子强度 30 / 下游覆盖 25 / 竞争格局 20 / 预期差 15 / 壁垒议价 10。
+每个维度的得分点、扣分点、为什么停在这一档都要能点开看；
+证据带日期、来源名和原文链接，查不到标 [MISSING] 不要估算；
+财务口径用同一报告期同一口径，取不到写 —。
+最后交付单文件 HTML。
 ```
 
-能开始拆层级就说明加载成功。
+能开始拆层级、最后吐出一个 HTML 文件，就说明装好了。
+
+其他客户端把第一行换成 `用 chain-score 研究 CPO 光模块` 即可，其余照抄。
 
 ---
 
 ## 怎么用
 
-### 最小输入：一句话
+### 三种客户端写法，复制即用
+
+| 客户端 | 复制这句 |
+|---|---|
+| WorkBuddy | `@skill:chain-score CPO 光模块` |
+| WorkBuddy（技能没被自动发现时） | `@skill:"C:\Users\<你的用户名>\.workbuddy\skills\chain-score\SKILL.md" CPO 光模块` |
+| Claude Code / 其他客户端 | `用 chain-score 研究 CPO 光模块` |
+
+只要主题名换成你关心的赛道/产品/热点/事件就行：`HBM`、`AI 电源`、`固态电池 干法电极`、`某厂断供事件`、`创新药出海`。
+
+**想要一份完整、可直接发的报告**，用这段（把要求写清，结果更稳）：
 
 ```
-@skill:chain-score CPO 光模块
+用 chain-score 研究 CPO 光模块，看 A 股。
+
+要求：
+1. 先把产业链拆成 3–5 层，按「明天断供，下游多久能恢复」给 0–10 卡点强度，
+   排完层级再选公司，不要跳过层级直接列股票。
+2. 选 3–5 只标的，至少覆盖两个不同层级；每只写清卖什么、卖给谁、
+   处在哪个商业阶段（研发/送样/认证/小批量/量产/订单/确认收入）。
+3. 五维打分：卡脖子强度 30 / 下游覆盖 25 / 竞争格局 20 / 预期差 15 / 壁垒议价 10，
+   执行封顶规则，给出定级。
+4. 每个维度都要能点开看得分点、扣分点，以及「为什么不是上一档也不是下一档」。
+5. 财务口径表：市值、PE(TTM)、营收同比、净利同比、毛利率及变动、现金流÷净利，
+   同一报告期同一口径，取不到写 —，不要估算。
+6. 证据带日期、来源名和原文链接；查不到标 [MISSING]，区分「已查未见」和「不存在」。
+7. 交付单文件 HTML，能直接双击打开。
 ```
 
-`@skill:` 是 WorkBuddy 的写法，换成绝对路径也可以：
-
-```
-@skill:"C:\Users\<你>\.workbuddy\skills\chain-score\SKILL.md" CPO 光模块
-```
-
-其他客户端直接口述即可：`用 chain-score 研究 CPO 光模块`。
+更多场景（挑战某家公司、方法论层怎么分两次问、提示词里该写什么不该写什么）见 **[PROMPTS.md](PROMPTS.md)**。
 
 ### 可以补的指令（不写就走默认）
 
@@ -229,25 +260,33 @@ powershell -ExecutionPolicy Bypass -File $env:TEMP\cs\install.ps1 -Only chain-sc
 ## 目录结构
 
 ```
-skills/
-├── chain-score/                    # 交付层：排层级 + 评分 + 出报告
-│   ├── SKILL.md                    # 5 步流程、评分纪律、交付规范
-│   ├── assets/
-│   │   └── report-template.html    # 报告模板（数据与视图分离，73KB 单文件）
-│   └── references/
-│       ├── scoring-rubric.md       # 五维分数带、封顶、反作弊条款
-│       ├── html-report-spec.md     # 版面、数据模型、交互、自检清单
-│       ├── evidence-ladder.md      # 证据强弱分级
-│       ├── market-source-playbook.md  # 各市场去哪儿找原始文件
-│       └── deep-research-workflow.md  # 研究步骤
+.
+├── README.md                       # 你正在看的这份
+├── PROMPTS.md                      # 提示词库：三种客户端写法 + 常用场景，可整段复制
+├── docs/                           # 3 张预览图
+├── examples/                       # 2 份真实报告（A股创新药 / 美股创新医药）
 │
-└── serenity-skill/                 # 方法论层：完整研究流程与对话协议
-    ├── SKILL.md
-    ├── LICENSE                     # 上游 MIT 许可（Copyright 2026 muxu）
-    ├── assets/                     # 同一套报告模板 + Prompt 包 + 论点模板
-    ├── references/                 # 含对话协议、输出风格、风险合规、公开画像等
-    ├── examples/                   # 3 个方法论示例对话
-    └── scripts/validate_skill.py   # 技能结构校验脚本
+├── skills/
+│   ├── chain-score/                    # 交付层：排层级 + 评分 + 出报告
+│   │   ├── SKILL.md                    # 5 步流程、评分纪律、交付规范
+│   │   ├── assets/
+│   │   │   └── report-template.html    # 报告模板（数据与视图分离，73KB 单文件）
+│   │   └── references/
+│   │       ├── scoring-rubric.md       # 五维分数带、封顶、反作弊条款
+│   │       ├── html-report-spec.md     # 版面、数据模型、交互、自检清单
+│   │       ├── evidence-ladder.md      # 证据强弱分级
+│   │       ├── market-source-playbook.md  # 各市场去哪儿找原始文件
+│   │       └── deep-research-workflow.md  # 研究步骤
+│   │
+│   └── serenity-skill/                 # 方法论层：完整研究流程与对话协议
+│       ├── SKILL.md
+│       ├── LICENSE                     # 上游 MIT 许可（Copyright 2026 muxu）
+│       ├── assets/                     # 同一套报告模板 + Prompt 包 + 论点模板
+│       ├── references/                 # 含对话协议、输出风格、风险合规、公开画像等
+│       ├── examples/                   # 3 个方法论示例对话
+│       └── scripts/validate_skill.py   # 技能结构校验脚本
+│
+└── install.sh  install.ps1             # 一键安装（装完直接打印可复制的提示词）
 ```
 
 两个技能的 `assets/report-template.html` **必须保持一致**（`cmp -s` 校验）。改模板时两边都要同步，否则一份报告用新模板、一份用旧模板。
